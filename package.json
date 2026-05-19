@@ -1,0 +1,12 @@
+{
+  "name": "ar-kpi-dashboard",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Auto Republic — Dashboard de KPIs",
+  "scripts": {
+    "start": "serve -s . -l tcp://0.0.0.0:${PORT:-3000} --no-clipboard"
+  },
+  "dependencies": {
+    "serve": "^14.2.4"
+  }
+}
