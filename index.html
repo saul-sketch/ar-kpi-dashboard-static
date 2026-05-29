@@ -3121,7 +3121,7 @@
         <div class="visit-mini ${expanded ? 'expanded' : ''}" onclick="toggleVisitExpand('${key}')">
           <div class="visit-mini-header">
             <div style="flex:1; min-width:0;">
-              <div class="visit-mini-name">${escapeHtml(v.name || '—')} ${v.sale === true ? `<span style="font-size:9px; padding:2px 7px; border-radius:100px; margin-left:6px; vertical-align: middle; font-weight:700; background:${v.subgen === true ? 'var(--green)' : 'var(--gray-200)'}; color:${v.subgen === true ? 'white' : 'var(--gray-700)'};">${saleType(v).toUpperCase()}</span>` : ''}</div>
+              <div class="visit-mini-name">${escapeHtml(v.name || '—')}${v.phone && v.phone.trim() ? ` <span style="font-weight:500; color:var(--gray-500); font-size:13px;">· ${escapeHtml(v.phone)}</span>` : ''} ${v.sale === true ? `<span style="font-size:9px; padding:2px 7px; border-radius:100px; margin-left:6px; vertical-align: middle; font-weight:700; background:${v.subgen === true ? 'var(--green)' : 'var(--gray-200)'}; color:${v.subgen === true ? 'white' : 'var(--gray-700)'};">${saleType(v).toUpperCase()}</span>` : ''}</div>
               <div class="visit-mini-meta">
                 <span class="visit-mini-loc"><span class="dot ${loc}"></span>${escapeHtml(v._location)}</span>
                 · ${dateShort} · ${escapeHtml(v.source || '—')} · Closer ${escapeHtml(v.closer || '—')}
