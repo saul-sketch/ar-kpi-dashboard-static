@@ -2888,7 +2888,13 @@
     }
 
     function applyDrawerFilter(visits, f) {
+      // Funnel-style (cumulative) filters — must match the chip counters in renderDrawer().
+      // A sold visit is ALSO an approved + applied visit, so it appears in all those filters.
       if (f === 'all') return visits;
+      if (f === 'applied') return visits.filter(v => v.applied === true);
+      if (f === 'approved') return visits.filter(v => v.result === 'approved');
+      if (f === 'denied') return visits.filter(v => v.result === 'denied');
+      if (f === 'sold') return visits.filter(v => v.sale === true);
       return visits.filter(v => outcomeOf(v) === f);
     }
 
