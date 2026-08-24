@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Auto Republic — Dashboard de KPIs</title>
+  <title>Dashboard - KPIs de Ventas - Management</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -974,6 +974,7 @@
     .outcome-pill.approved { background: #d1fae5; color: #065f46; }
     .outcome-pill.denied { background: #fee2e2; color: #991b1b; }
     .outcome-pill.sold { background: #ddd6fe; color: #5b21b6; }
+    .outcome-pill.cancelled { background: #fee2e2; color: #991b1b; text-decoration: line-through; }
 
     .visit-mini-detail {
       display: none;
@@ -1121,11 +1122,40 @@
       color: var(--gray-500);
     }
 
+    /* Gráficos clickeables — cursor de mano sobre barras, segmentos y puntos */
+    #charts-view .apexcharts-bar-area,
+    #charts-view .apexcharts-pie-area,
+    #charts-view .apexcharts-marker { cursor: pointer; }
+
+    /* Rate drilldown modal */
+    .rd-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;}
+    .rd-modal{background:white;border-radius:16px;padding:22px;max-width:480px;width:100%;max-height:80vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2);}
+    .rd-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;}
+    .rd-title{font-size:16px;font-weight:800;}
+    .rd-sub{font-size:12px;color:var(--gray-500);margin-top:2px;}
+    .rd-close{background:var(--gray-100);border:none;border-radius:8px;width:30px;height:30px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+    .rd-row{display:grid;grid-template-columns:1fr 80px 110px;gap:8px;align-items:center;padding:9px 0;border-bottom:1px solid var(--gray-100);}
+    .rd-row:last-child{border-bottom:none;}
+    .rd-row.rd-head{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--gray-400);padding-bottom:6px;}
+    .rd-name{font-size:13px;font-weight:700;}
+    .rd-nums{font-size:12px;color:var(--gray-500);}
+    .rd-pct{font-size:14px;font-weight:800;text-align:right;}
+    .rd-bar-wrap{height:5px;background:var(--gray-100);border-radius:3px;margin-top:3px;}
+    .rd-bar{height:5px;border-radius:3px;}
+    .rd-rank1{color:#f59e0b;}.rd-rank2{color:#94a3b8;}.rd-rank3{color:#d97706;}
+    .rd-worst{color:var(--red);}.rd-mid{color:var(--yellow);}.rd-best{color:var(--green);}
+    .rd-funnel-step{flex:1;min-width:80px;background:var(--gray-50);border:1px solid var(--gray-200);border-radius:10px;padding:10px 8px;text-align:center;}
+    .rd-funnel-num{font-size:20px;font-weight:800;color:var(--gray-900);}
+    .rd-funnel-lab{font-size:11px;font-weight:700;color:var(--gray-600);margin-top:2px;}
+    .rd-funnel-sub{font-size:10px;color:var(--gray-400);margin-top:2px;}
+    .rd-funnel-arr{display:flex;align-items:center;color:var(--gray-300);font-size:16px;flex:0 0 auto;}
+
     /* Rate cards with benchmarks */
     .rate-card {
       position: relative;
       transition: all 0.15s;
     }
+    .rate-card:hover { filter: brightness(0.97); }
     .rate-card.below { border: 2px solid var(--red); background: #fef2f2; }
     .rate-card.warn { border: 2px solid var(--yellow); background: #fffbeb; }
     .rate-card.ok { border: 2px solid var(--green); background: #f0fdf4; }
@@ -1324,6 +1354,33 @@
       background: white;
       box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
     }
+    .edit-field input.field-error,
+    .edit-field select.field-error,
+    .field-error-box {
+      border-color: var(--red) !important;
+      background: #fef2f2 !important;
+    }
+    .field-error-msg {
+      font-size: 11px;
+      color: var(--red);
+      font-weight: 600;
+      margin-top: 2px;
+    }
+    .edit-draft-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      background: #fffbeb;
+      border: 1.5px solid #fde68a;
+      color: #92400e;
+      border-radius: 8px;
+      padding: 9px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      margin: 0 22px 12px;
+    }
+    .edit-draft-banner a { color: #92400e; text-decoration: underline; cursor: pointer; font-weight: 700; flex-shrink: 0; }
 
     .edit-toggle-row {
       display: flex;
@@ -1363,6 +1420,7 @@
     .edit-toggle-btn.act-no,
     .edit-toggle-btn.act-denied,
     .edit-toggle-btn.act-nosale { background: var(--red); color: white; }
+    .edit-toggle-btn.act-pending { background: var(--yellow); color: white; }
 
     .edit-modal-footer {
       padding: 14px 22px;
@@ -1451,15 +1509,16 @@
       .funnel-name, .funnel-rate { text-align: left; }
       .detail-grid, .detail-grid.full { grid-template-columns: 1fr; }
     }
-  </style>
+  .ar-logo{display:inline-block;background-image:url('data:image/png;base64,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');background-position:left center;background-size:contain;background-repeat:no-repeat;flex:0 0 auto;}
+</style>
   <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.49.1/dist/apexcharts.min.js"></script>
 </head>
 <body>
   <!-- Login Screen -->
   <div class="login-screen" id="login-screen">
     <div class="login-card">
-      <div class="login-logo">Auto Republic</div>
-      <div class="login-subtitle">Dashboard de KPIs</div>
+      <div class="ar-logo" style="width:160px;height:100px;margin:0 auto 6px;"></div>
+      <div class="login-subtitle">Dashboard - KPIs de Ventas - Management</div>
       <input type="password" id="login-password" placeholder="Tu contraseña" autocomplete="off">
       <button class="btn-login" onclick="tryLogin()">Iniciar sesión</button>
       <div class="login-error" id="login-error" style="display:none;"></div>
@@ -1468,13 +1527,22 @@
 
   <div class="container" id="main-container" style="display:none;">
     <div class="header">
-      <div>
-        <h1>Auto Republic — Dashboard de KPIs</h1>
-        <div class="subtitle">Datos en vivo de los reportes diarios enviados</div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div class="ar-logo" style="width:62px;height:40px;"></div>
+        <div>
+          <h1>Dashboard - KPIs de Ventas - Management</h1>
+          <div class="subtitle">Datos en vivo de los reportes diarios enviados</div>
+        </div>
       </div>
       <div style="display: flex; align-items: center; gap: 14px;">
         <div class="user-pill">
           <span id="user-name">—</span>
+          <button id="settings-btn" onclick="openSettings()" title="Settings — Usuarios" style="display:none;">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+          </button>
           <button onclick="changePassword()" title="Cambiar contraseña">
             <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
@@ -1528,6 +1596,25 @@
           <div style="display:flex; gap:8px; justify-content:flex-end;">
             <button class="filter-tab" onclick="closeAddDayModal()" style="border:1px solid var(--gray-300);">Cancelar</button>
             <button class="filter-tab" onclick="submitAddDay()" style="background:var(--primary); color:white;">Crear y abrir</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reassign report date (admin only) -->
+      <div id="reassign-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:60; align-items:center; justify-content:center;" onclick="closeReassignModal(event)">
+        <div style="background:white; padding:24px; border-radius:14px; width:400px; max-width:90vw;" onclick="event.stopPropagation()">
+          <h3 style="margin:0 0 4px 0; font-size:18px;">Reasignar fecha del reporte</h3>
+          <p style="margin:0 0 14px 0; font-size:13px; color:var(--gray-500);">Mueve este reporte y TODAS sus visitas a otra fecha. Útil cuando se cargó en el día equivocado. No se pierde ningún dato.</p>
+          <div style="background:var(--gray-100); border-radius:8px; padding:10px 12px; margin-bottom:14px; font-size:13px;">
+            Reporte actual: <strong id="reassign-current">—</strong>
+          </div>
+          <div class="edit-field" style="margin-bottom:18px;">
+            <label>Nueva fecha</label>
+            <input type="date" id="reassign-date">
+          </div>
+          <div style="display:flex; gap:8px; justify-content:flex-end;">
+            <button class="filter-tab" onclick="closeReassignModal()" style="border:1px solid var(--gray-300);">Cancelar</button>
+            <button class="filter-tab" onclick="submitReassign()" style="background:var(--primary); color:white;">Reasignar</button>
           </div>
         </div>
       </div>
@@ -1617,6 +1704,11 @@
         <div class="kpi-label-row"><span class="kpi-label">PD</span><span class="kpi-arrow">›</span></div>
         <div class="kpi-value money" id="kpi-pd">$0</div>
         <div class="kpi-trend neutral" id="kpi-pd-detail">—</div>
+      </div>
+      <div class="kpi-card accent-red clickable" onclick="openDrawer('cancelled')">
+        <div class="kpi-label-row"><span class="kpi-label">Cancelados</span><span class="kpi-arrow">›</span></div>
+        <div class="kpi-value" id="kpi-cancelled">0</div>
+        <div class="kpi-trend neutral" id="kpi-cancelled-detail">—</div>
       </div>
     </div>
 
@@ -1801,39 +1893,90 @@
         <h3>Tasas de Conversión Clave</h3>
         <p class="section-sub">vs benchmarks objetivo</p>
         <div class="rates-grid">
-          <div class="rate-card" id="rate-card-va">
+          <div class="rate-card" id="rate-card-va" onclick="openRateDrilldown('va')" style="cursor:pointer;">
             <span class="rate-status" id="rate-status-va">—</span>
             <div class="rate-label">Visit → Apply</div>
             <div class="rate-value" id="rate-visit-apply">0%</div>
             <div class="rate-detail" id="rate-visit-apply-detail">— de — visitas</div>
-            <div class="rate-target">Target: 70-80%</div>
+            <div class="rate-target">Target: 70-80% · <span style="color:var(--blue);font-weight:700;">ver por closer ↗</span></div>
           </div>
-          <div class="rate-card" id="rate-card-aa">
+          <div class="rate-card" id="rate-card-aa" onclick="openRateDrilldown('aa')" style="cursor:pointer;">
             <span class="rate-status" id="rate-status-aa">—</span>
             <div class="rate-label">Apply → Approve</div>
             <div class="rate-value" id="rate-apply-approve">0%</div>
             <div class="rate-detail" id="rate-apply-approve-detail">— de — aplicaron</div>
-            <div class="rate-target">Target: ~45% (40-50%)</div>
+            <div class="rate-target">Target: ~45% (40-50%) · <span style="color:var(--blue);font-weight:700;">ver por closer ↗</span></div>
           </div>
-          <div class="rate-card" id="rate-card-as">
+          <div class="rate-card" id="rate-card-as" onclick="openRateDrilldown('as')" style="cursor:pointer;">
             <span class="rate-status" id="rate-status-as">—</span>
             <div class="rate-label">Approve → Sale</div>
             <div class="rate-value" id="rate-approve-sale">0%</div>
             <div class="rate-detail" id="rate-approve-sale-detail">— de — aprobados</div>
-            <div class="rate-target">Target: 75%</div>
+            <div class="rate-target">Target: 75% · <span style="color:var(--blue);font-weight:700;">ver por closer ↗</span></div>
           </div>
-          <div class="rate-card" id="rate-card-vs">
+          <div class="rate-card" id="rate-card-vs" onclick="openRateDrilldown('vs')" style="cursor:pointer;">
             <span class="rate-status" id="rate-status-vs">—</span>
             <div class="rate-label">Visit → Sale</div>
             <div class="rate-value" id="rate-visit-sale">0%</div>
             <div class="rate-detail" id="rate-visit-sale-detail">— de — visitas</div>
-            <div class="rate-target">Target: 20%</div>
+            <div class="rate-target">Target: 20% · <span style="color:var(--blue);font-weight:700;">ver por closer ↗</span></div>
           </div>
         </div>
       </div>
     </div>
 
+    <!-- Aplicaciones online (paso adicional del reporte diario) -->
+    <div class="section-card" style="margin-bottom:16px;">
+      <h3>Aplicaciones online</h3>
+      <p class="section-sub">Aplicaciones trabajadas por el equipo hoy · origen, quién la trabajó y resultado</p>
+      <div class="kpi-grid" style="grid-template-columns:repeat(auto-fit,minmax(120px,1fr));">
+        <div class="kpi-card clickable" onclick="openAppsDrawer('all')">
+          <div class="kpi-label-row"><span class="kpi-label">Total</span><span class="kpi-arrow">›</span></div>
+          <div class="kpi-value" id="app-kpi-total">0</div>
+        </div>
+        <div class="kpi-card accent-blue clickable" onclick="openAppsDrawer('Call Center')">
+          <div class="kpi-label-row"><span class="kpi-label">Call Center</span><span class="kpi-arrow">›</span></div>
+          <div class="kpi-value" id="app-kpi-cc">0</div>
+        </div>
+        <div class="kpi-card accent-purple clickable" onclick="openAppsDrawer('Self-gen')">
+          <div class="kpi-label-row"><span class="kpi-label">Self-gen</span><span class="kpi-arrow">›</span></div>
+          <div class="kpi-value" id="app-kpi-sg">0</div>
+        </div>
+        <div class="kpi-card accent-green clickable" onclick="openAppsDrawer('approved')">
+          <div class="kpi-label-row"><span class="kpi-label">Aprobadas</span><span class="kpi-arrow">›</span></div>
+          <div class="kpi-value" id="app-kpi-approved">0</div>
+        </div>
+        <div class="kpi-card accent-yellow clickable" onclick="openAppsDrawer('pending')">
+          <div class="kpi-label-row"><span class="kpi-label">Pendientes</span><span class="kpi-arrow">›</span></div>
+          <div class="kpi-value" id="app-kpi-pending">0</div>
+        </div>
+        <div class="kpi-card clickable" onclick="openAppsDrawer('denied')">
+          <div class="kpi-label-row"><span class="kpi-label">Negadas</span><span class="kpi-arrow">›</span></div>
+          <div class="kpi-value" id="app-kpi-denied">0</div>
+        </div>
+      </div>
+      <div style="margin-top:16px;">
+        <div style="font-size:13px; font-weight:700; margin-bottom:10px; color:var(--gray-700);">Quién trae más aplicaciones (setter en Call Center · closer en Self-gen)</div>
+        <div id="apps-by-closer"><div class="empty-state">—</div></div>
+      </div>
+    </div>
+
     <!-- Weekly breakdown -->
+    <div class="section-card" style="margin-bottom:16px;">
+      <h3>Por qué no convierten</h3>
+      <p class="section-sub">Diagnóstico del embudo · respeta el periodo y locación seleccionados</p>
+      <div class="row-2col">
+        <div>
+          <div style="font-size:13px; font-weight:700; margin-bottom:10px; color:var(--gray-700);">Por qué no aplican</div>
+          <div id="reasons-noapply"><div class="empty-state">—</div></div>
+        </div>
+        <div>
+          <div style="font-size:13px; font-weight:700; margin-bottom:10px; color:var(--gray-700);">Por qué los niegan</div>
+          <div id="reasons-denied"><div class="empty-state">—</div></div>
+        </div>
+      </div>
+    </div>
+
     <div class="section-card" style="margin-bottom:16px;">
       <h3>Desglose por semana</h3>
       <p class="section-sub">Semana 1 = días 1-7 · Semana 2 = 8-14 · Semana 3 = 15-21 · Semana 4 = 22-28 · Semana 5 = 29-fin</p>
@@ -1857,6 +2000,7 @@
               <th class="td-numeric">Aprob</th>
               <th class="td-numeric">Negados</th>
               <th class="td-numeric">Ventas</th>
+              <th class="td-numeric">Apps online</th>
               <th class="td-numeric">Net Profit</th>
               <th class="td-numeric">Down Col.</th>
               <th>V→S</th>
@@ -1864,7 +2008,7 @@
             </tr>
           </thead>
           <tbody id="daily-tbody">
-            <tr><td colspan="11" class="empty-state">Cargando...</td></tr>
+            <tr><td colspan="12" class="empty-state">Cargando...</td></tr>
           </tbody>
         </table>
       </div>
@@ -2090,12 +2234,37 @@
         </div>
         <button onclick="closeEditModal()" style="background:var(--gray-100); border:none; width:30px; height:30px; border-radius:50%; cursor:pointer; font-size:18px; color:var(--gray-700);">&times;</button>
       </div>
+      <div class="edit-draft-banner" id="edit-draft-banner" style="display:none;">
+        <span>📝 Recuperamos lo que estabas llenando antes de cerrarse.</span>
+        <a onclick="discardEditDraft()">Descartar</a>
+      </div>
       <div class="edit-modal-body" id="edit-modal-body"></div>
       <div class="edit-modal-footer">
         <button class="btn-delete" id="edit-modal-delete" onclick="deleteEditedVisit()">🗑 Eliminar visita</button>
         <div style="margin-left: auto; display: flex; gap: 8px;">
           <button class="btn-cancel" onclick="closeEditModal()">Cancelar</button>
           <button class="btn-save" id="edit-modal-save" onclick="saveEditedVisit()">Guardar cambios</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Online App Modal -->
+  <div class="edit-overlay" id="app-edit-overlay" onclick="closeAppModal(event)">
+    <div class="edit-modal" onclick="event.stopPropagation()">
+      <div class="edit-modal-header">
+        <div>
+          <h2 id="app-edit-modal-title">Editar aplicación online</h2>
+          <div class="meta" id="app-edit-meta">—</div>
+        </div>
+        <button onclick="closeAppModal()" style="background:var(--gray-100); border:none; width:30px; height:30px; border-radius:50%; cursor:pointer; font-size:18px; color:var(--gray-700);">&times;</button>
+      </div>
+      <div class="edit-modal-body" id="app-edit-modal-body"></div>
+      <div class="edit-modal-footer">
+        <button class="btn-delete" id="app-edit-modal-delete" onclick="deleteEditedApp()">🗑 Eliminar</button>
+        <div style="margin-left: auto; display: flex; gap: 8px;">
+          <button class="btn-cancel" onclick="closeAppModal()">Cancelar</button>
+          <button class="btn-save" id="app-edit-modal-save" onclick="saveEditedApp()">Guardar</button>
         </div>
       </div>
     </div>
@@ -2146,15 +2315,32 @@
       const btn = document.querySelector('.btn-login');
       if (btn) { btn.disabled = true; btn.textContent = 'Verificando...'; }
       try {
-        const res = await fetch(`${SUPA_URL}/rest/v1/app_users?password=eq.${encodeURIComponent(password)}&select=name,location_access`, { headers: SUPA_HEADERS });
-        const data = await res.json();
-        if (!data || data.length === 0) {
+        const enc = encodeURIComponent(password);
+        let name = null, active = true, loc = 'all';
+        // 1) Autentica contra dashboard_access (incluye usuarios creados en Settings + respeta 'activo')
+        const da = await (await fetch(`${SUPA_URL}/rest/v1/dashboard_access?dashboard=eq.ventas&password=eq.${enc}&select=name,active`, { headers: SUPA_HEADERS })).json();
+        if (Array.isArray(da) && da.length) { name = da[0].name; active = da[0].active !== false; }
+        else {
+          // 2) Fallback a app_users (usuarios viejos), y checa 'activo' en dashboard_access
+          const au = await (await fetch(`${SUPA_URL}/rest/v1/app_users?password=eq.${enc}&select=name,location_access`, { headers: SUPA_HEADERS })).json();
+          if (Array.isArray(au) && au.length) {
+            name = au[0].name; loc = au[0].location_access || 'all';
+            const chk = await (await fetch(`${SUPA_URL}/rest/v1/dashboard_access?ukey=eq.ventas:${encodeURIComponent((name||'').toLowerCase())}&select=active`, { headers: SUPA_HEADERS })).json();
+            active = !(Array.isArray(chk) && chk.length) || chk[0].active !== false;
+          }
+        }
+        if (!name) {
           errorEl.textContent = 'Contraseña incorrecta';
           errorEl.style.display = 'block';
           return;
         }
-        currentUser = data[0].name;
-        currentUserAccess = data[0].location_access || 'all';
+        if (!active) {
+          errorEl.textContent = 'Tu acceso fue desactivado. Contacta a Saúl.';
+          errorEl.style.display = 'block';
+          return;
+        }
+        currentUser = name;
+        currentUserAccess = loc;
         localStorage.setItem('ar_dash_user', currentUser);
         localStorage.setItem('ar_dash_access', currentUserAccess);
         document.getElementById('login-password').value = '';
@@ -2173,9 +2359,85 @@
       document.getElementById('user-name').textContent = currentUser;
       applyLocationAccess();
       applyFinancialTabVisibility();
+      await touchAccess();
       await Promise.all([refreshReportsCache(), refreshAgentsCache()]);
       loadData();
       updateDateRangeUI();
+    }
+
+    // ===== Control de acceso: registra quién abre + permisos (Settings → Users) =====
+    const DASH = 'ventas';
+    window._myAccess = null;
+    async function touchAccess() {
+      try {
+        const ident = (currentUser || '').toLowerCase().trim(); if (!ident) return;
+        const ukey = DASH + ':' + ident;
+        await fetch(`${SUPA_URL}/rest/v1/dashboard_access?on_conflict=ukey`, { method: 'POST',
+          headers: { ...SUPA_HEADERS, Prefer: 'resolution=merge-duplicates,return=minimal' },
+          body: JSON.stringify({ dashboard: DASH, ukey, name: currentUser, access_type: 'user', last_seen_at: new Date().toISOString() }) });
+        const r = await fetch(`${SUPA_URL}/rest/v1/dashboard_access?ukey=eq.${encodeURIComponent(ukey)}&select=role,can_history,active`, { headers: SUPA_HEADERS });
+        const rows = await r.json();
+        window._myAccess = rows[0] || { role: 'viewer', can_history: true, active: true };
+        if (window._myAccess.role === 'admin') { const b = document.getElementById('settings-btn'); if (b) b.style.display = ''; }
+      } catch (e) { window._myAccess = { role: 'viewer', can_history: true, active: true }; }
+    }
+    function isAdmin() { return window._myAccess && window._myAccess.role === 'admin'; }
+    function canHistory() { return !window._myAccess || window._myAccess.can_history !== false; }
+
+    function saFmtLastSeen(ts) {
+      if (!ts) return '<span style="color:#94a3b8;">nunca</span>';
+      const d = new Date(ts), diff = (Date.now() - d.getTime()) / 1000;
+      let s; if (diff < 60) s = 'hace segundos'; else if (diff < 3600) s = 'hace ' + Math.floor(diff / 60) + ' min'; else if (diff < 86400) s = 'hace ' + Math.floor(diff / 3600) + ' h'; else if (diff < 172800) s = 'ayer'; else s = 'hace ' + Math.floor(diff / 86400) + ' días';
+      return `${s} <span style="color:#94a3b8;font-size:11px;">(${d.getDate()}/${d.getMonth() + 1} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')})</span>`;
+    }
+    function saBadge(t) { const m = { user: ['Usuario + clave', '#3b82f6'], ghl: ['Desde el CRM', '#10b981'], link: ['Link directo', '#f59e0b'] }; const [l, c] = m[t] || ['—', '#94a3b8']; return `<span style="font-size:11px;font-weight:700;color:${c};background:${c}1a;padding:3px 8px;border-radius:6px;white-space:nowrap;">${l}</span>`; }
+    async function saPatch(id, patch) { try { await fetch(`${SUPA_URL}/rest/v1/dashboard_access?id=eq.${id}`, { method: 'PATCH', headers: { ...SUPA_HEADERS, Prefer: 'return=minimal' }, body: JSON.stringify(patch) }); } catch (e) {} openSettings(); }
+    async function saDelete(id, name) { if (!confirm('¿Quitar acceso a ' + name + '?')) return; try { await fetch(`${SUPA_URL}/rest/v1/dashboard_access?id=eq.${id}`, { method: 'DELETE', headers: SUPA_HEADERS }); } catch (e) {} openSettings(); }
+    async function saAddUser() {
+      const name = document.getElementById('sa-name').value.trim(), email = document.getElementById('sa-email').value.trim(), pass = document.getElementById('sa-pass').value.trim();
+      if (!name || !pass) { alert('Nombre y contraseña son obligatorios'); return; }
+      const ident = (email || name).toLowerCase();
+      const row = { dashboard: DASH, ukey: DASH + ':' + ident, name, email: email || null, access_type: 'user', password: pass, role: 'viewer', can_history: true, active: true };
+      try { await fetch(`${SUPA_URL}/rest/v1/dashboard_access?on_conflict=ukey`, { method: 'POST', headers: { ...SUPA_HEADERS, Prefer: 'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify(row) }); } catch (e) { alert('Error: ' + e.message); }
+      openSettings();
+    }
+    function saAddUserPrompt() {
+      const box = document.getElementById('sa-add-box'); if (!box) return;
+      box.innerHTML = `<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:12px;background:#f8fafc;border-radius:10px;margin-bottom:12px;">
+        <input id="sa-name" placeholder="Nombre" style="flex:1;min-width:120px;padding:9px 11px;border:1px solid #e2e8f0;border-radius:8px;font-family:inherit;font-size:14px;">
+        <input id="sa-email" placeholder="Email (opcional)" style="flex:1;min-width:120px;padding:9px 11px;border:1px solid #e2e8f0;border-radius:8px;font-family:inherit;font-size:14px;">
+        <input id="sa-pass" placeholder="Contraseña" style="flex:1;min-width:110px;padding:9px 11px;border:1px solid #e2e8f0;border-radius:8px;font-family:inherit;font-size:14px;">
+        <button onclick="saAddUser()" style="padding:9px 15px;background:#0f172a;color:white;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-family:inherit;">Crear</button></div>`;
+      document.getElementById('sa-name').focus();
+    }
+    async function openSettings() {
+      if (!isAdmin()) return;
+      let rows = [];
+      try { const r = await fetch(`${SUPA_URL}/rest/v1/dashboard_access?dashboard=eq.${DASH}&select=*&order=last_seen_at.desc.nullslast`, { headers: SUPA_HEADERS }); rows = await r.json(); } catch (e) {}
+      const roleOpt = (cur) => ['admin', 'manager', 'viewer'].map(r => `<option value="${r}" ${cur === r ? 'selected' : ''}>${r}</option>`).join('');
+      const esc = s => (s == null ? '' : String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])));
+      const body = rows.map(u => `<tr style="border-top:1px solid #e2e8f0;${u.active === false ? 'opacity:.5;' : ''}">
+          <td style="padding:8px 6px;font-weight:700;">${esc(u.name || '—')}<div style="font-size:11px;color:#94a3b8;font-weight:400;">${esc(u.email || '')}</div></td>
+          <td style="padding:8px 6px;">${saBadge(u.access_type)}</td>
+          <td style="padding:8px 6px;font-family:monospace;font-size:12px;">${u.access_type === 'user' ? esc(u.password || '') : '<span style="color:#cbd5e1;">—</span>'}</td>
+          <td style="padding:8px 6px;"><select onchange="saPatch('${u.id}',{role:this.value})" style="font-size:12px;padding:4px 6px;border:1px solid #e2e8f0;border-radius:6px;font-family:inherit;">${roleOpt(u.role)}</select></td>
+          <td style="padding:8px 6px;font-size:12px;">${saFmtLastSeen(u.last_seen_at)}</td>
+          <td style="padding:8px 6px;text-align:center;"><input type="checkbox" ${u.can_history !== false ? 'checked' : ''} onchange="saPatch('${u.id}',{can_history:this.checked})" title="Ver meses pasados"></td>
+          <td style="padding:8px 6px;text-align:center;"><input type="checkbox" ${u.active !== false ? 'checked' : ''} onchange="saPatch('${u.id}',{active:this.checked})" title="Acceso activo"></td>
+          <td style="padding:8px 6px;text-align:center;"><button onclick="saDelete('${u.id}','${esc(u.name || '')}')" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:14px;">🗑</button></td>
+        </tr>`).join('');
+      const o = document.getElementById('sa-overlay'); if (o) o.remove();
+      document.body.insertAdjacentHTML('beforeend', `<div id="sa-overlay" style="position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:3000;display:flex;align-items:flex-start;justify-content:center;padding:24px 12px;overflow-y:auto;" onclick="if(event.target===this)this.remove()">
+        <div style="background:white;border-radius:16px;padding:20px;max-width:780px;width:100%;margin:auto;box-shadow:0 24px 60px rgba(0,0,0,.28);">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;"><div style="font-weight:800;font-size:17px;">⚙️ Settings — Usuarios</div>
+          <div style="display:flex;gap:8px;"><button onclick="saAddUserPrompt()" style="padding:8px 14px;background:#0f172a;color:white;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-family:inherit;font-size:13px;">+ Agregar usuario</button>
+          <button onclick="document.getElementById('sa-overlay').remove()" style="background:#f1f5f9;border:none;border-radius:8px;width:34px;cursor:pointer;font-size:15px;">✕</button></div></div>
+          <div style="font-size:12.5px;color:#1e40af;background:#eff6ff;border:1px solid #bfdbfe;border-radius:9px;padding:9px 12px;margin:10px 0;"><b>Acceso:</b> Desde el CRM = GoHighLevel · Link directo = enlace · Usuario + clave = contraseña. <b>Históricos</b> ON = ve meses pasados; OFF = solo mes actual.</div>
+          <div id="sa-add-box"></div>
+          <div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr style="text-align:left;color:#64748b;font-size:11px;text-transform:uppercase;">
+            <th style="padding:6px;">Usuario</th><th style="padding:6px;">Acceso</th><th style="padding:6px;">Clave</th><th style="padding:6px;">Rol</th><th style="padding:6px;">Última vez</th><th style="padding:6px;text-align:center;">Históricos</th><th style="padding:6px;text-align:center;">Activo</th><th></th>
+          </tr></thead><tbody>${body || '<tr><td colspan="8" style="padding:20px;text-align:center;color:#94a3b8;">Sin usuarios</td></tr>'}</tbody></table></div>
+        </div></div>`);
     }
 
     function applyLocationAccess() {
@@ -2253,6 +2515,11 @@
     });
 
     function selectMonth(monthKey) {
+      // Permiso de históricos: si OFF, solo el mes actual.
+      if (!canHistory()) {
+        const cm = new Date().toISOString().slice(0, 7);
+        if (monthKey !== cm) { alert('Tu acceso es solo del mes actual. Pídele a Saúl permiso de históricos.'); return; }
+      }
       filterMonth = monthKey;
       // Reset sub-range — new period invalidates any previous sub-range
       filterDateFrom = null;
@@ -2278,7 +2545,7 @@
       reports.forEach(r => {
         const [y, m] = r.date.split('-').map(Number);
         const q = Math.ceil(m / 3);
-        const salesInReport = (r.visits || []).filter(v => v.sale === true).length;
+        const salesInReport = (r.visits || []).filter(isActiveSale).length;
         if (!yearMap[y]) yearMap[y] = { count: 0, quarters: {} };
         yearMap[y].count += salesInReport;
         if (!yearMap[y].quarters[q]) yearMap[y].quarters[q] = { count: 0, months: {} };
@@ -2482,7 +2749,8 @@
     }
 
     function fmtMoney(n) {
-      return '$' + (n || 0).toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+      const v = n || 0;
+      return (v < 0 ? '-$' : '$') + Math.abs(v).toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0});
     }
 
     function fmtPct(num, denom) {
@@ -2497,6 +2765,84 @@
       return `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]}`;
     }
 
+    function renderReasonBars(containerId, tally, color, kind) {
+      const el = document.getElementById(containerId);
+      if (!el) return;
+      const entries = Object.entries(tally).sort((a, b) => b[1] - a[1]);
+      const total = entries.reduce((s, e) => s + e[1], 0);
+      if (!total) { el.innerHTML = '<div class="empty-state" style="padding:16px 0;">Sin datos en el periodo</div>'; return; }
+      const max = Math.max(...entries.map(e => e[1]));
+      el.innerHTML = entries.map(([label, count]) => {
+        const pct = Math.round(count / max * 100);
+        const share = Math.round(count / total * 100);
+        const clickAttr = kind ? `onclick="openReasonDrilldown('${kind}', ${JSON.stringify(label).replace(/"/g, '&quot;')})" style="display:flex; align-items:center; gap:10px; margin-bottom:7px; cursor:pointer;" title="Ver por closer"` : `style="display:flex; align-items:center; gap:10px; margin-bottom:7px;"`;
+        return `<div ${clickAttr}>
+          <span style="font-size:12px; color:var(--gray-600); width:150px; flex:0 0 auto; line-height:1.25;">${escapeHtml(label)}</span>
+          <span style="flex:1; height:16px; background:var(--gray-100); border-radius:4px; overflow:hidden; display:block;"><span style="display:block; height:100%; width:${pct}%; background:${color}; border-radius:4px;"></span></span>
+          <span style="font-size:12px; font-weight:700; width:58px; text-align:right; color:var(--gray-700);">${count} · ${share}%</span>
+        </div>`;
+      }).join('');
+    }
+
+    // Desglosa una razón específica (no aplicó / negado) por closer que atendió esas visitas.
+    // Denominador: "no aplicó" se mide sobre TOTAL DE VISITAS (se decide antes de aplicar).
+    //              "negado" se mide sobre TOTAL DE APLICACIONES (solo puede negarte si aplicaste).
+    function openReasonDrilldown(kind, reason) {
+      const isNoApply = kind === 'noapply';
+      const map = {}; // closer -> { matches: casos con esta razón, total: denominador correcto según el tipo }
+      _lastFiltered.forEach(r => {
+        (r.visits || []).forEach(v => {
+          const name = closerBucketKey(v); // solo, "A & B" en pareja, o "Sin asignar" — nunca ambos por separado
+          const isMatch = isNoApply
+            ? (v.applied === false && v.no_apply_reason === reason)
+            : (v.result === 'denied' && v.denied_reason === reason);
+          // cuenta hacia el denominador: toda visita si es "no aplicó"; solo los que aplicaron si es "negado"
+          const countsForDenom = isNoApply ? true : (v.applied === true);
+          if (!countsForDenom) return;
+          if (!map[name]) map[name] = { matches: 0, total: 0 };
+          map[name].total++;
+          if (isMatch) map[name].matches++;
+        });
+      });
+
+      const MIN_SAMPLE = 3; // evita que un closer con 1 visita (100%) parezca el peor por pura casualidad
+      const rows = Object.entries(map)
+        .filter(([_, s]) => s.matches > 0 && s.total >= MIN_SAMPLE)
+        .map(([name, s]) => ({ name, matches: s.matches, total: s.total, rate: s.total > 0 ? s.matches / s.total : 0 }))
+        .sort((a, b) => b.rate - a.rate); // % más alto primero (no el conteo bruto)
+
+      if (rows.length === 0) { alert(`No hay closers con al menos ${MIN_SAMPLE} ${isNoApply ? 'visitas' : 'aplicaciones'} para comparar en este período.`); return; }
+
+      const maxRate = Math.max(...rows.map(r => r.rate), 0.01);
+      const denomLabel = isNoApply ? 'visitas' : 'aplicaciones';
+      const rowsHtml = rows.map((r, i) => {
+        const pct = (r.rate * 100).toFixed(0) + '%';
+        const barW = Math.round(r.rate / maxRate * 100);
+        return `<div class="rd-row">
+          <div>
+            <div class="rd-name ${i === 0 ? 'rd-worst' : ''}">${i === 0 ? '⚠️ ' : ''}${escapeHtml(r.name)}</div>
+            <div class="rd-bar-wrap"><div class="rd-bar" style="width:${barW}%;background:var(--red);"></div></div>
+          </div>
+          <div class="rd-nums">${r.matches} / ${r.total}<br><span style="font-size:10px;color:var(--gray-400);">${denomLabel}</span></div>
+          <div class="rd-pct rd-worst">${pct}</div>
+        </div>`;
+      }).join('');
+
+      const html = `<div class="rd-overlay" onclick="if(event.target===this)this.remove()">
+        <div class="rd-modal">
+          <div class="rd-header">
+            <div><div class="rd-title">${escapeHtml(reason)} — por closer</div>
+            <div class="rd-sub">${isNoApply ? 'No aplicó' : 'Negado'} · % más alto primero · mín. ${MIN_SAMPLE} ${denomLabel} · % es sobre el total de ${denomLabel} que atendió ese closer</div></div>
+            <button class="rd-close" onclick="this.closest('.rd-overlay').remove()">✕</button>
+          </div>
+          <div class="rd-row rd-head"><div>Closer</div><div>Casos</div><div style="text-align:right">%</div></div>
+          ${rowsHtml}
+        </div>
+      </div>`;
+      document.body.insertAdjacentHTML('beforeend', html);
+    }
+
+    let _lastFiltered = [];
     function loadData() {
       const all = loadAllReports();
       const filtered = all.filter(r => {
@@ -2504,11 +2850,14 @@
         const matchPeriod = inSelectedMonth(r.date);
         return matchLoc && matchPeriod;
       });
+      _lastFiltered = filtered;
 
       // Aggregate
       let visits = 0, applied = 0, approved = 0, denied = 0, sales = 0, netProfit = 0, downCol = 0, pd = 0;
+      let cancelled = 0, cancelledProfit = 0;
       const closersMap = {};
       const settersMap = {};
+      const noApplyReasons = {}, deniedReasons = {};
 
       filtered.forEach(r => {
         r.visits.forEach(v => {
@@ -2516,16 +2865,17 @@
           if (v.applied === true) applied++;
           if (v.result === 'approved') approved++;
           if (v.result === 'denied') denied++;
-          if (v.sale === true) {
+          if (v.applied === false && v.no_apply_reason) noApplyReasons[v.no_apply_reason] = (noApplyReasons[v.no_apply_reason] || 0) + 1;
+          if (v.result === 'denied' && v.denied_reason) deniedReasons[v.denied_reason] = (deniedReasons[v.denied_reason] || 0) + 1;
+          if (isCancelledSale(v)) { cancelled++; cancelledProfit += v.net_profit || 0; }
+          if (isActiveSale(v)) {
             sales++;
             netProfit += v.net_profit || 0;
             downCol += v.down_collected || 0;
             pd += v.down_deferred || 0;
-            if (v.closer && v.closer.trim() && v.closer.toLowerCase() !== 'n/a') {
-              closersMap[v.closer] = (closersMap[v.closer] || 0) + 1;
-            }
-            if (v.closer2 && v.closer2.trim() && v.closer2.toLowerCase() !== 'n/a') {
-              closersMap[v.closer2] = (closersMap[v.closer2] || 0) + 1;
+            const closerKey = closerBucketKey(v);
+            if (closerKey !== 'Sin asignar') {
+              closersMap[closerKey] = (closersMap[closerKey] || 0) + 1;
             }
             if (v.setter && v.setter.trim() && v.setter.toLowerCase() !== 'n/a') {
               settersMap[v.setter] = (settersMap[v.setter] || 0) + 1;
@@ -2549,6 +2899,31 @@
       document.getElementById('kpi-down-detail').textContent = sales ? `${fmtMoney(downCol / sales)} promedio` : '—';
       document.getElementById('kpi-pd').textContent = fmtMoney(pd);
       document.getElementById('kpi-pd-detail').textContent = sales ? `${fmtMoney(pd / sales)} promedio` : '—';
+      document.getElementById('kpi-cancelled').textContent = cancelled;
+      document.getElementById('kpi-cancelled-detail').textContent = cancelled ? `${fmtMoney(cancelledProfit)} en ventas revertidas` : 'Ninguna en el periodo';
+      renderReasonBars('reasons-noapply', noApplyReasons, 'var(--yellow)', 'noapply');
+      renderReasonBars('reasons-denied', deniedReasons, 'var(--red)', 'denied');
+
+      // Aplicaciones online (paso adicional, separado de las visitas físicas)
+      const allApps = getAllOnlineAppsFlat();
+      const appCC = allApps.filter(a => a.scheduled_by === 'Call Center').length;
+      const appSG = allApps.filter(a => a.scheduled_by === 'Self-gen').length;
+      const appApproved = allApps.filter(a => a.result === 'approved').length;
+      const appPending = allApps.filter(a => a.result === 'pending').length;
+      const appDenied = allApps.filter(a => a.result === 'denied').length;
+      document.getElementById('app-kpi-total').textContent = allApps.length;
+      document.getElementById('app-kpi-cc').textContent = appCC;
+      document.getElementById('app-kpi-sg').textContent = appSG;
+      document.getElementById('app-kpi-approved').textContent = appApproved;
+      document.getElementById('app-kpi-pending').textContent = appPending;
+      document.getElementById('app-kpi-denied').textContent = appDenied;
+      const ownerAppTally = {};
+      allApps.forEach(a => {
+        const c = appOwnerName(a);
+        if (!c || c.toLowerCase() === 'n/a') return;
+        ownerAppTally[c] = (ownerAppTally[c] || 0) + 1;
+      });
+      renderReasonBars('apps-by-closer', ownerAppTally, 'var(--blue)', null);
 
       // Funnel
       const max = Math.max(visits, 1);
@@ -2603,7 +2978,7 @@
       // Sale types breakdown
       const typeCounts = { 'Self-gen': 0, 'Setter': 0, 'Others': 0 };
       filtered.forEach(r => r.visits.forEach(v => {
-        if (v.sale === true) typeCounts[saleType(v)]++;
+        if (isActiveSale(v)) typeCounts[saleType(v)]++;
       }));
       document.getElementById('st-subgen').textContent = typeCounts['Self-gen'];
       document.getElementById('st-subgen-detail').textContent = sales > 0 ? `${fmtPct(typeCounts['Self-gen'], sales)} de ventas` : 'closer agendó';
@@ -2642,7 +3017,7 @@
         if (!src) return;
         srcStats[src].v++;
         if (v.applied === true) srcStats[src].a++;
-        if (v.sale === true) srcStats[src].s++;
+        if (isActiveSale(v)) srcStats[src].s++;
       }));
       const setSrc = (key, stat) => {
         document.getElementById(`sm-${key}`).textContent = stat.v;
@@ -2657,7 +3032,7 @@
       // Métodos de Down (solo si hay ventas con method registrado)
       const downMethodTotals = {}; // method -> {count, total}
       filtered.forEach(r => r.visits.forEach(v => {
-        if (v.sale === true && v.down_method && (v.down_collected || 0) > 0) {
+        if (isActiveSale(v) && v.down_method && (v.down_collected || 0) > 0) {
           if (!downMethodTotals[v.down_method]) downMethodTotals[v.down_method] = { count: 0, total: 0 };
           downMethodTotals[v.down_method].count++;
           downMethodTotals[v.down_method].total += v.down_collected || 0;
@@ -2707,7 +3082,7 @@
         if (daysInMonth >= 29) weeks.push({ num: 5, from: 29, to: daysInMonth });
 
         const weekStats = weeks.map(w => {
-          let v = 0, ap = 0, apr = 0, dn = 0, sl = 0, np = 0;
+          let v = 0, ap = 0, apr = 0, dn = 0, sl = 0, np = 0, cn = 0;
           filtered.forEach(r => {
             const day = parseInt(r.date.split('-')[2]);
             if (day < w.from || day > w.to) return;
@@ -2716,10 +3091,11 @@
               if (x.applied === true) ap++;
               if (x.result === 'approved') apr++;
               if (x.result === 'denied') dn++;
-              if (x.sale === true) { sl++; np += x.net_profit || 0; }
+              if (isActiveSale(x)) { sl++; np += x.net_profit || 0; }
+              if (isCancelledSale(x)) cn++;
             });
           });
-          return { ...w, v, ap, apr, dn, sl, np };
+          return { ...w, v, ap, apr, dn, sl, np, cn };
         });
 
         if (weekStats.every(w => w.v === 0)) {
@@ -2736,6 +3112,7 @@
                 <div class="week-stat-name">Negados</div><div class="week-stat-val">${w.dn}</div>
                 <div class="week-stat-name">Ventas</div><div class="week-stat-val" style="color:var(--accent);">${w.sl}</div>
                 <div class="week-stat-name">Net Profit</div><div class="week-stat-val" style="color:var(--green);">${fmtMoney(w.np)}</div>
+                ${w.cn > 0 ? `<div class="week-stat-name">Cancelados</div><div class="week-stat-val" style="color:var(--red);">${w.cn}</div>` : ''}
               </div>
               <div class="week-vts">
                 <span style="color:var(--gray-500);">V→S</span>
@@ -2782,7 +3159,7 @@
       // Daily table — group by date+location
       const tbody = document.getElementById('daily-tbody');
       if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="11" class="empty-state">No hay reportes en el periodo seleccionado</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="12" class="empty-state">No hay reportes en el periodo seleccionado</td></tr>';
       } else {
         const sorted = [...filtered].sort((a, b) => b.date.localeCompare(a.date));
         tbody.innerHTML = sorted.map(r => {
@@ -2792,9 +3169,14 @@
             if (x.applied === true) ap++;
             if (x.result === 'approved') apr++;
             if (x.result === 'denied') dn++;
-            if (x.sale === true) { sl++; np += x.net_profit || 0; dc += x.down_collected || 0; }
+            if (isActiveSale(x)) { sl++; np += x.net_profit || 0; dc += x.down_collected || 0; }
           });
           const loc = (r.location || '—').toLowerCase();
+          const appN = (r.online_apps || []).length;
+          const appConfirmed = isAppsConfirmed(r);
+          const appCell = appConfirmed
+            ? `<span class="${appN === 0 ? 'td-zero' : ''}">${appN}</span>`
+            : `<span style="color:#d97706;font-weight:700;" title="Falta confirmar aplicaciones online de este día">⚠ falta</span>`;
           return `
             <tr data-date="${r.date}" data-location="${r.location || ''}">
               <td>${formatDateShort(r.date)}</td>
@@ -2804,6 +3186,7 @@
               <td class="td-numeric ${apr === 0 ? 'td-zero' : ''}">${apr}</td>
               <td class="td-numeric ${dn === 0 ? 'td-zero' : ''}">${dn}</td>
               <td class="td-numeric ${sl === 0 ? 'td-zero' : ''}">${sl}</td>
+              <td class="td-numeric">${appCell}</td>
               <td class="td-money ${np === 0 ? 'td-zero' : ''}">${fmtMoney(np)}</td>
               <td class="td-money ${dc === 0 ? 'td-zero' : ''}">${fmtMoney(dc)}</td>
               <td class="td-numeric">${fmtPct(sl, v)}</td>
@@ -2879,7 +3262,14 @@
       );
     }
 
+    // A sale that was logged but later cancelled. Data is preserved (net_profit,
+    // down, deal #, etc. all stay on the visit) — only excluded from active totals.
+    function isCancelledSale(v) { return v.sale === true && v.cancelled === true; }
+    // An active (not-cancelled) sale — this is what every $/count aggregation uses.
+    function isActiveSale(v) { return v.sale === true && v.cancelled !== true; }
+
     function outcomeOf(v) {
+      if (isCancelledSale(v)) return 'cancelled';
       if (v.sale === true) return 'sold';
       if (v.result === 'approved') return 'approved';
       if (v.result === 'denied') return 'denied';
@@ -2888,7 +3278,14 @@
     }
 
     function applyDrawerFilter(visits, f) {
+      // Funnel-style (cumulative) filters — must match the chip counters in renderDrawer().
+      // A sold visit is ALSO an approved + applied visit, so it appears in all those filters.
       if (f === 'all') return visits;
+      if (f === 'applied') return visits.filter(v => v.applied === true);
+      if (f === 'approved') return visits.filter(v => v.result === 'approved');
+      if (f === 'denied') return visits.filter(v => v.result === 'denied');
+      if (f === 'sold') return visits.filter(isActiveSale);
+      if (f === 'cancelled') return visits.filter(isCancelledSale);
       return visits.filter(v => outcomeOf(v) === f);
     }
 
@@ -2901,6 +3298,26 @@
       if (!s) return true;
       const t = String(s).trim().toLowerCase();
       return t === '' || t === 'n/a' || t === 'na';
+    }
+
+    // Cada visita pertenece a UN SOLO bucket para cualquier desglose por closer:
+    // solo (closer), pareja ("A & B", orden alfabético para que sea siempre igual), o sin asignar.
+    // Nunca se le da crédito completo a los 2 al mismo tiempo — evita doble conteo.
+    function closerBucketKey(v) {
+      const c1 = v.closer && !isNA(v.closer) ? v.closer.trim() : null;
+      const c2 = v.closer2 && !isNA(v.closer2) ? v.closer2.trim() : null;
+      if (c1 && c2 && c1 !== c2) return [c1, c2].sort().join(' & ');
+      if (c1) return c1;
+      if (c2) return c2;
+      return 'Sin asignar';
+    }
+
+    // Aplicación online: si es Call Center, queda a nombre del SETTER que la trajo
+    // (el closer todavía no entra hasta que el cliente llegue al dealer). Si es Self-gen,
+    // el closer la trae y la trabaja él mismo.
+    function appOwnerName(a) {
+      if (a.scheduled_by === 'Call Center') return (a.setter || '').trim();
+      return (a.closer || '').trim();
     }
 
     function saleType(v) {
@@ -2916,7 +3333,7 @@
     }
 
     function openSaleTypeDrawer(type) {
-      const visits = getAllVisitsFlat().filter(v => v.sale === true && saleType(v) === type);
+      const visits = getAllVisitsFlat().filter(v => isActiveSale(v) && saleType(v) === type);
       openDrawer('sold', visits, `Ventas — Tipo: ${type}`);
     }
 
@@ -2962,11 +3379,12 @@
         applied: drawerVisits.filter(v => v.applied === true).length,
         approved: drawerVisits.filter(v => v.result === 'approved').length,
         denied: drawerVisits.filter(v => v.result === 'denied').length,
-        sold: drawerVisits.filter(v => v.sale === true).length
+        sold: drawerVisits.filter(isActiveSale).length,
+        cancelled: drawerVisits.filter(isCancelledSale).length
       };
 
       // Title + sub
-      const titles = {all:'Visitas', applied:'Aplicaron', approved:'Aprobados', denied:'Negados', sold:'Ventas'};
+      const titles = {all:'Visitas', applied:'Aplicaron', approved:'Aprobados', denied:'Negados', sold:'Ventas', cancelled:'Canceladas'};
       document.getElementById('drawer-title').textContent = drawerCustomTitle || titles[drawerFilter] || 'Visitas';
       const monthFull = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
       let periodLabel = 'Todo el tiempo';
@@ -2985,14 +3403,39 @@
       const addBtnHost = document.getElementById('drawer-add-host');
       if (addBtnHost) {
         if (drawerDayContext) {
-          addBtnHost.innerHTML = `<button class="btn-add-visit" onclick="openAddModal('${drawerDayContext.date}','${drawerDayContext.location}')">+ Agregar visita</button>`;
+          const dc = drawerDayContext;
+          const dayReport = loadReport(dc.date, dc.location);
+          const appCount = (dayReport && dayReport.online_apps || []).length;
+          const confirmed = isAppsConfirmed(dayReport);
+          // Banner de estado de aplicaciones online del día — obliga a confirmar (aunque sean 0)
+          let appBanner = '';
+          if (!confirmed) {
+            appBanner = `<div style="background:#fffbeb;border:1.5px solid #fbbf24;border-radius:10px;padding:11px 14px;margin-bottom:10px;">
+              <div style="font-size:13px;font-weight:700;color:#92400e;margin-bottom:8px;">⚠️ Falta confirmar las aplicaciones online de este día</div>
+              <div style="font-size:12px;color:#92400e;margin-bottom:10px;line-height:1.4;">Registra cada aplicación online que trabajó el equipo hoy. Si hoy fueron cero, confírmalo para dejar el historial.</div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button class="btn-add-visit" onclick="openAddAppModal('${dc.date}','${dc.location}')">+ Aplicación online</button>
+                <button class="btn-add-visit" style="background:#fef3c7;border-color:#fbbf24;color:#92400e;" onclick="confirmZeroApps('${dc.date}','${dc.location}')">Hoy fueron 0 ✓</button>
+              </div>
+            </div>`;
+          } else {
+            appBanner = `<div style="background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:9px 14px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+              <span style="font-size:12px;font-weight:600;color:#065f46;">✓ ${appCount} ${appCount === 1 ? 'aplicación online confirmada' : 'aplicaciones online confirmadas'}</span>
+              <button class="btn-add-visit" onclick="openAddAppModal('${dc.date}','${dc.location}')">+ Aplicación online</button>
+            </div>`;
+          }
+          const reassignBtn = currentUserAccess === 'all'
+            ? `<button class="btn-add-visit" style="margin-left:8px;" onclick="openReassignModal()">📅 Reasignar fecha</button>` : '';
+          addBtnHost.innerHTML = appBanner + `<button class="btn-add-visit" onclick="openAddModal('${dc.date}','${dc.location}')">+ Agregar visita</button>${reassignBtn}`;
         } else {
           addBtnHost.innerHTML = '';
         }
       }
 
-      // Filter chips
-      const chips = ['all','applied','approved','denied','sold'].map(f => `
+      // Filter chips (show "Canceladas" only when relevant or already selected)
+      const chipKeys = ['all','applied','approved','denied','sold'];
+      if (counts.cancelled > 0 || drawerFilter === 'cancelled') chipKeys.push('cancelled');
+      const chips = chipKeys.map(f => `
         <button class="drawer-chip ${drawerFilter === f ? 'active' : ''}" onclick="setDrawerFilter('${f}')">
           ${titles[f]}<span class="drawer-chip-count">${counts[f]}</span>
         </button>
@@ -3019,7 +3462,7 @@
 
     function renderVisitMini(v) {
       const outcome = outcomeOf(v);
-      const outcomeLabels = {visit:'Solo visita', applied:'Aplicó', approved:'Aprobado', denied:'Negado', sold:'Vendido'};
+      const outcomeLabels = {visit:'Solo visita', applied:'Aplicó', approved:'Aprobado', denied:'Negado', sold:'Vendido', cancelled:'Cancelada'};
       const key = visitKey(v);
       const expanded = expandedVisitKey === key;
       const loc = (v._location || '').toLowerCase();
@@ -3058,7 +3501,8 @@
           </div>
           ${v.sale === true ? `
             <div style="margin-top:14px; padding-top:12px; border-top:1px dashed var(--gray-200);">
-              <div class="lbl" style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--green); margin-bottom:8px;">Detalles de la venta</div>
+              ${isCancelledSale(v) ? `<div style="background:#fef2f2; border:1.5px solid #fecaca; border-radius:8px; padding:8px 12px; margin-bottom:10px; font-size:12px; color:#991b1b; font-weight:700;">⊘ VENTA CANCELADA${v.cancelled_by ? ` · por ${escapeHtml(v.cancelled_by)}` : ''}${v.cancelled_at ? ` · ${new Date(v.cancelled_at).toLocaleDateString('es-US',{month:'short',day:'numeric'})}` : ''}<div style="font-weight:500; color:#b91c1c; margin-top:2px;">Datos conservados · excluida de los totales</div></div>` : ''}
+              <div class="lbl" style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:${isCancelledSale(v) ? 'var(--gray-500)' : 'var(--green)'}; margin-bottom:8px;">Detalles de la venta${isCancelledSale(v) ? ' (cancelada)' : ''}</div>
               <div class="detail-grid full">
                 <div class="detail-row">
                   <div class="lbl">Deal #</div>
@@ -3087,6 +3531,61 @@
               </div>
             </div>
           ` : ''}
+          ${v.result === 'denied' ? `
+            <div style="margin-top:14px; padding-top:12px; border-top:1px dashed var(--gray-200);">
+              <div class="lbl" style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--red); margin-bottom:8px;">Detalles del negado</div>
+              <div class="detail-grid full">
+                <div class="detail-row">
+                  <div class="lbl">Razón</div>
+                  <div class="val">${escapeHtml(v.denied_reason === 'Otro' ? (v.denied_reason_other || 'Otro') : (v.denied_reason || '—'))}</div>
+                </div>
+                <div class="detail-row">
+                  <div class="lbl">Deal # (negado)</div>
+                  <div class="val">${escapeHtml(v.denied_deal || '—')}</div>
+                </div>
+                <div class="detail-row">
+                  <div class="lbl">Enviado a todos los bancos</div>
+                  <div class="val" style="color:${v.sent_all_banks === true ? 'var(--green)' : 'var(--red)'}; font-weight:700;">${v.sent_all_banks === true ? '✓ Sí' : '✗ No confirmado'}</div>
+                </div>
+                <div class="detail-row">
+                  <div class="lbl">Down que tenía</div>
+                  <div class="val ${v.down_available != null ? 'money' : 'muted'}">${v.down_available != null ? fmtMoney(v.down_available) : '— sin dato'}</div>
+                </div>
+              </div>
+            </div>
+          ` : ''}
+          ${(v.result === 'approved' && v.sale === false) ? `
+            <div style="margin-top:14px; padding-top:12px; border-top:1px dashed var(--gray-200);">
+              <div class="lbl" style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--gray-500); margin-bottom:8px;">Aprobado · no cerrado</div>
+              <div class="detail-grid full">
+                <div class="detail-row">
+                  <div class="lbl">Deal # (aprobado)</div>
+                  <div class="val">${escapeHtml(v.approved_deal || '—')}</div>
+                </div>
+                <div class="detail-row">
+                  <div class="lbl">Down que tenía</div>
+                  <div class="val ${v.down_available != null ? 'money' : 'muted'}">${v.down_available != null ? fmtMoney(v.down_available) : '— sin dato'}</div>
+                </div>
+              </div>
+            </div>
+          ` : ''}
+          ${v.applied === false ? `
+            <div style="margin-top:14px; padding-top:12px; border-top:1px dashed var(--gray-200);">
+              <div class="lbl" style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--gray-500); margin-bottom:8px;">No aplicó</div>
+              <div class="detail-grid full">
+                <div class="detail-row">
+                  <div class="lbl">Razón</div>
+                  <div class="val">${escapeHtml(v.no_apply_reason || '—')}</div>
+                </div>
+                ${v.no_apply_requirement ? `
+                  <div class="detail-row">
+                    <div class="lbl">Requisito que faltó</div>
+                    <div class="val">${escapeHtml(v.no_apply_requirement === 'Otro' ? (v.no_apply_requirement_other || 'Otro') : v.no_apply_requirement)}</div>
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+          ` : ''}
           ${(() => {
             const r = _reportsCache.find(rr => rr.date === v._date && rr.location === v._location);
             if (!r) return '';
@@ -3108,14 +3607,14 @@
       `;
 
       const rightSide = v.sale === true
-        ? `<span class="visit-mini-amount">${fmtMoney(v.net_profit)}</span><span class="outcome-pill ${outcome}">${outcomeLabels[outcome]}</span>`
+        ? `<span class="visit-mini-amount"${isCancelledSale(v) ? ' style="text-decoration:line-through; opacity:.55;"' : ''}>${fmtMoney(v.net_profit)}</span><span class="outcome-pill ${outcome}">${outcomeLabels[outcome]}</span>`
         : `<span class="outcome-pill ${outcome}">${outcomeLabels[outcome]}</span>`;
 
       return `
         <div class="visit-mini ${expanded ? 'expanded' : ''}" onclick="toggleVisitExpand('${key}')">
           <div class="visit-mini-header">
             <div style="flex:1; min-width:0;">
-              <div class="visit-mini-name">${escapeHtml(v.name || '—')} ${v.sale === true ? `<span style="font-size:9px; padding:2px 7px; border-radius:100px; margin-left:6px; vertical-align: middle; font-weight:700; background:${v.subgen === true ? 'var(--green)' : 'var(--gray-200)'}; color:${v.subgen === true ? 'white' : 'var(--gray-700)'};">${saleType(v).toUpperCase()}</span>` : ''}</div>
+              <div class="visit-mini-name">${escapeHtml(v.name || '—')}${v.phone && v.phone.trim() ? ` <span style="font-weight:500; color:var(--gray-500); font-size:13px;">· ${escapeHtml(v.phone)}</span>` : ''} ${v.sale === true ? `<span style="font-size:9px; padding:2px 7px; border-radius:100px; margin-left:6px; vertical-align: middle; font-weight:700; background:${v.subgen === true ? 'var(--green)' : 'var(--gray-200)'}; color:${v.subgen === true ? 'white' : 'var(--gray-700)'};">${saleType(v).toUpperCase()}</span>` : ''}</div>
               <div class="visit-mini-meta">
                 <span class="visit-mini-loc"><span class="dot ${loc}"></span>${escapeHtml(v._location)}</span>
                 · ${dateShort} · ${escapeHtml(v.source || '—')} · Closer ${escapeHtml(v.closer || '—')}
@@ -3130,15 +3629,14 @@
 
     // Click on closer/setter → open drawer with their sales
     function openClosersDrawer(name) {
-      const visits = getAllVisitsFlat().filter(v =>
-        v.sale === true && (v.closer === name || v.closer2 === name)
-      );
+      // Match exacto por bucket — si "name" es pareja, solo trae esas ventas en pareja (no las solas de cada uno).
+      const visits = getAllVisitsFlat().filter(v => isActiveSale(v) && closerBucketKey(v) === name);
       openDrawer('sold', visits, `Ventas de ${name}`);
     }
 
     function openSettersDrawer(name) {
       const visits = getAllVisitsFlat().filter(v =>
-        v.sale === true && v.setter === name
+        isActiveSale(v) && v.setter === name
       );
       openDrawer('sold', visits, `Ventas con ${name} como setter`);
     }
@@ -3152,6 +3650,59 @@
     // ============== EDIT / DELETE ==============
 
     let editingVisit = null;
+    let editErrors = new Set(); // field IDs currently flagged invalid (cleared as each is fixed)
+    let editDraftRestored = false;
+
+    // ===== Autosave draft (protects against closing the tab/modal mid-entry) =====
+    function draftKey(date, location, idx) { return `ar_kpi_edit_draft__${date}__${location}__${idx}`; }
+    function saveEditDraft() {
+      if (!editingVisit) return;
+      try { localStorage.setItem(draftKey(editingVisit.date, editingVisit.location, editingVisit.idx), JSON.stringify(editingVisit.current)); } catch (e) {}
+    }
+    function loadEditDraft(date, location, idx) {
+      try {
+        const raw = localStorage.getItem(draftKey(date, location, idx));
+        return raw ? JSON.parse(raw) : null;
+      } catch (e) { return null; }
+    }
+    function clearEditDraft(date, location, idx) {
+      try { localStorage.removeItem(draftKey(date, location, idx)); } catch (e) {}
+    }
+    function discardEditDraft() {
+      if (!editingVisit) return;
+      clearEditDraft(editingVisit.date, editingVisit.location, editingVisit.idx);
+      editDraftRestored = false;
+      document.getElementById('edit-draft-banner').style.display = 'none';
+      // Vuelve a cargar el estado original (sin el borrador descartado)
+      if (editingVisit.idx === 'NEW') {
+        editingVisit.current = { phone: '', name: '', source: '', setter: '', closer: '', closer2: '', applied: null, result: null, sale: null };
+      } else {
+        const report = loadReport(editingVisit.date, editingVisit.location);
+        editingVisit.current = report && report.visits[editingVisit.idx] ? JSON.parse(JSON.stringify(report.visits[editingVisit.idx])) : editingVisit.current;
+      }
+      renderEditForm();
+    }
+    // Un solo listener delegado: captura cualquier campo de texto/número/checkbox que
+    // el usuario escriba, sin re-renderizar el formulario completo (para no perder el foco/cursor).
+    function handleEditModalFieldEvent(e) {
+      if (!editingVisit) return;
+      captureFormToCurrent();
+      // en cuanto el usuario escribe/selecciona algo en un campo marcado en rojo, se lo quitamos (sin re-renderizar todo)
+      const fixed = e.target && e.target.id && editErrors.has(e.target.id) &&
+        (e.target.type === 'checkbox' ? e.target.checked : String(e.target.value || '').trim());
+      if (fixed) {
+        editErrors.delete(e.target.id);
+        e.target.classList.remove('field-error');
+        const box = e.target.closest('label') || e.target.parentElement;
+        const msg = box && box.querySelector('.field-error-msg');
+        if (msg) msg.remove();
+      }
+    }
+    const editModalBodyEl = document.getElementById('edit-modal-body');
+    if (editModalBodyEl) {
+      editModalBodyEl.addEventListener('input', handleEditModalFieldEvent);
+      editModalBodyEl.addEventListener('change', handleEditModalFieldEvent);
+    }
 
     // Find a report in cache by date+location
     function loadReport(date, location) {
@@ -3167,6 +3718,9 @@
         headers: { ...SUPA_HEADERS, Prefer: 'return=representation' },
         body: JSON.stringify({
           visits: report.visits,
+          online_apps: report.online_apps || [],
+          // se considera confirmado si el flag es true O si ya hay al menos una aplicación registrada
+          online_apps_confirmed: report.online_apps_confirmed === true || (report.online_apps || []).length > 0,
           last_edited_at: new Date().toISOString(),
           last_edited_by: currentUser
         })
@@ -3195,6 +3749,11 @@
       document.getElementById('edit-modal-save').textContent = 'Guardar cambios';
       document.getElementById('edit-modal-delete').style.display = '';
       document.getElementById('edit-meta').textContent = `${location} · ${d.getDate()} de ${monthFull[d.getMonth()]} ${d.getFullYear()}`;
+      editErrors = new Set();
+      const draft = loadEditDraft(date, location, idx);
+      editDraftRestored = !!draft;
+      document.getElementById('edit-draft-banner').style.display = draft ? 'flex' : 'none';
+      if (draft) editingVisit.current = draft;
       renderEditForm();
       document.getElementById('edit-overlay').classList.add('show');
     }
@@ -3217,6 +3776,11 @@
       document.getElementById('edit-modal-save').textContent = 'Agregar visita';
       document.getElementById('edit-modal-delete').style.display = 'none';
       document.getElementById('edit-meta').textContent = `${location} · ${d.getDate()} de ${monthFull[d.getMonth()]} ${d.getFullYear()}`;
+      editErrors = new Set();
+      const draft = loadEditDraft(date, location, 'NEW');
+      editDraftRestored = !!draft;
+      document.getElementById('edit-draft-banner').style.display = draft ? 'flex' : 'none';
+      if (draft) editingVisit.current = draft;
       renderEditForm();
       document.getElementById('edit-overlay').classList.add('show');
     }
@@ -3227,7 +3791,7 @@
       editingVisit = null;
     }
 
-    function setApplied(val) { editingVisit.current.applied = val; if (val === false) { editingVisit.current.result = null; editingVisit.current.sale = null; } renderEditForm(); }
+    function setApplied(val) { editingVisit.current.applied = val; if (val === false) { editingVisit.current.result = null; editingVisit.current.sale = null; } if (val === true && editingVisit.current.no_contact === true) editingVisit.current.no_contact = false; renderEditForm(); }
     function setResult(val) { editingVisit.current.result = val; if (val === 'denied') editingVisit.current.sale = null; renderEditForm(); }
     function setSale(val) {
       editingVisit.current.sale = val;
@@ -3238,6 +3802,22 @@
         editingVisit.current.net_profit = 0;
         editingVisit.current.down_collected = 0;
         editingVisit.current.down_deferred = 0;
+      }
+      renderEditForm();
+    }
+
+    // Cancel / reactivate a sale. Data is preserved — only the status flag changes,
+    // which excludes it from active totals everywhere (via isActiveSale).
+    function setCancelled(val) {
+      const c = editingVisit.current;
+      if (val === true) {
+        c.cancelled = true;
+        c.cancelled_at = new Date().toISOString();
+        c.cancelled_by = currentUser;
+      } else {
+        c.cancelled = false;
+        delete c.cancelled_at;
+        delete c.cancelled_by;
       }
       renderEditForm();
     }
@@ -3258,6 +3838,16 @@
       if (get('edit-down-col')) v.down_collected = parseFloat(get('edit-down-col').value) || 0;
       if (get('edit-down-def')) v.down_deferred = parseFloat(get('edit-down-def').value) || 0;
       if (get('edit-down-method')) v.down_method = get('edit-down-method').value || null;
+      if (get('edit-denied-deal')) v.denied_deal = get('edit-denied-deal').value;
+      if (get('edit-approved-deal')) v.approved_deal = get('edit-approved-deal').value;
+      if (get('edit-sent-banks')) v.sent_all_banks = get('edit-sent-banks').checked;
+      if (get('edit-down-available')) v.down_available = get('edit-down-available').value === '' ? null : (parseFloat(get('edit-down-available').value) || 0);
+      if (get('edit-denied-reason')) v.denied_reason = get('edit-denied-reason').value || null;
+      if (get('edit-denied-reason-other')) v.denied_reason_other = get('edit-denied-reason-other').value || null;
+      if (get('edit-noapply-reason')) v.no_apply_reason = get('edit-noapply-reason').value || null;
+      if (get('edit-noapply-req')) v.no_apply_requirement = get('edit-noapply-req').value || null;
+      if (get('edit-noapply-req-other')) v.no_apply_requirement_other = get('edit-noapply-req-other').value || null;
+      saveEditDraft();
     }
 
     function setScheduledByEdit(value) {
@@ -3279,12 +3869,21 @@
 
     function renderEditForm() {
       const v = editingVisit.current;
+      // Invariant: a sale implies the customer applied AND was approved. Repairs
+      // contradictory records (sale=true but Aplicó=No) — persists on save.
+      if (v.sale === true) { v.applied = true; v.result = 'approved'; }
       const lenderOpts = ['','CapitalOne','Carvant Financial LLC','Exeter Finance','Global Lending Services','Lendbuzz Funding LLC','Lobel Financial','OneMain Financial Group LLC','Strike Acceptance','Veros Credit LLC','Western Funding','Westlake Financial','Cash'];
       const sources = ['','Marketing','Facebook Marketplace','Others'];
 
       const isWalkIn = v.scheduled_by === 'Walk-in';
-      const skipContact = isWalkIn && v.no_contact === true;
+      // Applied visits always show contact inputs — an application implies we have the data
+      const skipContact = isWalkIn && v.no_contact === true && v.applied !== true;
       const downMethodOpts = ['','Cash','Tarjeta','Zelle','Tradein','Otro'];
+      const deniedReasonOpts = ['','Crédito insuficiente','Sin historial de crédito','Ingreso insuficiente','Carro abierto — no aprobaron 2do auto','Upside down en el trade-in','Poco tiempo en el trabajo','Down payment insuficiente','Documentos incompletos','Bancarrota / repo reciente','Otro'];
+      const noApplyReasonOpts = ['','No quiso aplicar','No le gustó el inventario','Solo estaba mirando','No tenía los requisitos'];
+      const noApplyReqOpts = ['','No tenía identificación','No tenía trabajo / ingresos comprobables','Otro'];
+      const errCls = id => editErrors.has(id) ? ' field-error' : '';
+      const errMsg = (id, msg) => editErrors.has(id) ? `<div class="field-error-msg">⚠ ${msg}</div>` : '';
 
       const body = document.getElementById('edit-modal-body');
       body.innerHTML = `
@@ -3312,11 +3911,13 @@
           <div class="edit-grid-2">
             <div class="edit-field">
               <label>Teléfono</label>
-              <input type="tel" id="edit-phone" value="${escapeAttr(v.phone)}" placeholder="000-000-0000">
+              <input type="tel" id="edit-phone" class="${errCls('edit-phone')}" value="${escapeAttr(v.phone)}" placeholder="000-000-0000">
+              ${errMsg('edit-phone', 'Falta el teléfono')}
             </div>
             <div class="edit-field">
               <label>Nombre</label>
-              <input type="text" id="edit-name" value="${escapeAttr(v.name)}" placeholder="Nombre completo">
+              <input type="text" id="edit-name" class="${errCls('edit-name')}" value="${escapeAttr(v.name)}" placeholder="Nombre completo">
+              ${errMsg('edit-name', 'Falta el nombre')}
             </div>
           </div>
         </div>
@@ -3380,9 +3981,97 @@
           ` : ''}
         </div>
 
+        ${v.applied === false ? `
+          <div class="edit-section">
+            <div class="edit-section-title">¿Por qué no aplicó?</div>
+            <div class="edit-field" style="margin-bottom:12px;">
+              <label>Razón</label>
+              <select id="edit-noapply-reason" class="${errCls('edit-noapply-reason')}" onchange="captureFormToCurrent(); renderEditForm()">
+                ${noApplyReasonOpts.map(o => `<option value="${escapeAttr(o)}" ${v.no_apply_reason === o ? 'selected' : ''}>${o || 'Seleccionar...'}</option>`).join('')}
+              </select>
+              ${errMsg('edit-noapply-reason', 'Elige una razón')}
+            </div>
+            ${v.no_apply_reason === 'No tenía los requisitos' ? `
+              <div class="edit-field" style="margin-bottom:12px;">
+                <label>¿Qué requisito le faltó?</label>
+                <select id="edit-noapply-req" class="${errCls('edit-noapply-req')}" onchange="captureFormToCurrent(); renderEditForm()">
+                  ${noApplyReqOpts.map(o => `<option value="${escapeAttr(o)}" ${v.no_apply_requirement === o ? 'selected' : ''}>${o || 'Seleccionar...'}</option>`).join('')}
+                </select>
+                ${errMsg('edit-noapply-req', 'Elige un requisito')}
+              </div>
+              ${v.no_apply_requirement === 'Otro' ? `
+                <div class="edit-field" style="margin-bottom:12px;">
+                  <label>Especifica</label>
+                  <input type="text" id="edit-noapply-req-other" class="${errCls('edit-noapply-req-other')}" value="${escapeAttr(v.no_apply_requirement_other)}" placeholder="Escribe qué fue...">
+                  ${errMsg('edit-noapply-req-other', 'Especifica el requisito')}
+                </div>
+              ` : ''}
+            ` : ''}
+          </div>
+        ` : ''}
+
+        ${v.result === 'denied' ? `
+          <div class="edit-section">
+            <div class="edit-section-title" style="color:var(--red);">Detalles del negado</div>
+            <div class="edit-field" style="margin-bottom:12px;">
+              <label>Razón del negado</label>
+              <select id="edit-denied-reason" class="${errCls('edit-denied-reason')}" onchange="captureFormToCurrent(); renderEditForm()">
+                ${deniedReasonOpts.map(o => `<option value="${escapeAttr(o)}" ${v.denied_reason === o ? 'selected' : ''}>${o || 'Seleccionar...'}</option>`).join('')}
+              </select>
+              ${errMsg('edit-denied-reason', 'Elige una razón')}
+            </div>
+            ${v.denied_reason === 'Otro' ? `
+              <div class="edit-field" style="margin-bottom:12px;">
+                <label>Especifica la razón</label>
+                <input type="text" id="edit-denied-reason-other" class="${errCls('edit-denied-reason-other')}" value="${escapeAttr(v.denied_reason_other)}" placeholder="Escribe la razón...">
+                ${errMsg('edit-denied-reason-other', 'Especifica la razón')}
+              </div>
+            ` : ''}
+            <div class="edit-field" style="margin-bottom:12px;">
+              <label>DealerCenter Deal # <span style="color:var(--gray-400); font-weight:500;">(deal negado)</span></label>
+              <input type="text" id="edit-denied-deal" class="${errCls('edit-denied-deal')}" value="${escapeAttr(v.denied_deal)}" placeholder="Número de deal negado">
+              ${errMsg('edit-denied-deal', 'Falta el Deal #')}
+            </div>
+            <div class="edit-field" style="margin-bottom:12px;">
+              <label>Down payment que tenía ($) <span style="color:var(--gray-400); font-weight:500;">(día de la visita)</span></label>
+              <input type="number" id="edit-down-available" class="${errCls('edit-down-available')}" value="${v.down_available != null ? v.down_available : ''}" step="1" placeholder="0">
+              ${errMsg('edit-down-available', 'Escribe el monto (0 si no tenía)')}
+            </div>
+            <label class="${errCls('edit-sent-banks') ? 'field-error-box' : ''}" style="display:flex; align-items:flex-start; gap:10px; cursor:pointer; padding:10px 12px; border:1.5px solid var(--gray-300); border-radius:8px;">
+              <input type="checkbox" id="edit-sent-banks" ${v.sent_all_banks === true ? 'checked' : ''} style="margin-top:2px; width:18px; height:18px; flex:0 0 auto;">
+              <span style="font-size:13px; line-height:1.4;">Confirmo que este deal se envió a <strong>todos los bancos</strong> antes de marcarlo como negado.</span>
+            </label>
+            ${errMsg('edit-sent-banks', 'Confirma esta casilla')}
+          </div>
+        ` : ''}
+
+        ${(v.result === 'approved' && v.sale === false) ? `
+          <div class="edit-section">
+            <div class="edit-section-title">Aprobado (no cerrado)</div>
+            <div class="edit-field" style="margin-bottom:12px;">
+              <label>DealerCenter Deal # <span style="color:var(--gray-400); font-weight:500;">(deal aprobado, aún sin cerrar)</span></label>
+              <input type="text" id="edit-approved-deal" class="${errCls('edit-approved-deal')}" value="${escapeAttr(v.approved_deal)}" placeholder="Número de deal aprobado">
+              ${errMsg('edit-approved-deal', 'Falta el Deal #')}
+            </div>
+            <div class="edit-field">
+              <label>Down payment que tenía ($) <span style="color:var(--gray-400); font-weight:500;">(día de la visita)</span></label>
+              <input type="number" id="edit-down-available" class="${errCls('edit-down-available')}" value="${v.down_available != null ? v.down_available : ''}" step="1" placeholder="0">
+              ${errMsg('edit-down-available', 'Escribe el monto (0 si no tenía)')}
+            </div>
+          </div>
+        ` : ''}
+
         ${v.sale === true ? `
           <div class="edit-section">
-            <div class="edit-section-title" style="color:var(--green);">Detalles de la venta</div>
+            <div class="edit-section-title" style="color:${isCancelledSale(v) ? 'var(--red)' : 'var(--green)'};">Detalles de la venta</div>
+            <div class="edit-toggle-row" style="${isCancelledSale(v) ? 'background:#fef2f2; border:1.5px solid #fecaca;' : 'background:var(--gray-100);'} padding:10px 12px; border-radius:8px; margin-bottom:12px;">
+              <span class="lbl">Estatus de la venta</span>
+              <div class="edit-toggle-group">
+                <button type="button" class="edit-toggle-btn ${!isCancelledSale(v) ? 'act-yes' : ''}" onclick="captureFormToCurrent(); setCancelled(false)">Activa</button>
+                <button type="button" class="edit-toggle-btn ${isCancelledSale(v) ? 'act-no' : ''}" onclick="captureFormToCurrent(); setCancelled(true)">Cancelada</button>
+              </div>
+            </div>
+            ${isCancelledSale(v) ? `<div style="font-size:11px; color:#991b1b; margin:-4px 0 12px; line-height:1.4;">⊘ Cancelada${v.cancelled_by ? ` por <strong>${escapeHtml(v.cancelled_by)}</strong>` : ''}${v.cancelled_at ? ` · ${new Date(v.cancelled_at).toLocaleDateString('es-US',{month:'short',day:'numeric',year:'numeric'})}` : ''}. Los datos se conservan; solo se excluye de los totales.</div>` : ''}
             ${(v.scheduled_by === 'Self-gen' || v.subgen === true) ? `
               <div style="background:#f0fdf4; padding:8px 12px; border-radius:8px; border:1.5px solid #86efac; font-size:12px; color:var(--green); font-weight:600; margin-bottom:12px;">
                 ✓ Venta Self-gen (derivada de "Quién agendó")
@@ -3429,9 +4118,43 @@
       `;
     }
 
+    // Same mandatory rules the form enforces — keeps admin edits from creating
+    // incomplete denied / no-apply records.
+    // Cada error va atado al ID del campo exacto — permite marcarlo en rojo en vez de un alert genérico.
+    function validateEditedVisit(v) {
+      const errs = [];
+      if (v.applied === true && !String(v.name || '').trim()) errs.push({ field: 'edit-name', msg: 'Nombre obligatorio (aplicó)' });
+      if (v.applied === true && !String(v.phone || '').trim()) errs.push({ field: 'edit-phone', msg: 'Teléfono obligatorio (aplicó)' });
+      if (v.applied === false) {
+        if (!v.no_apply_reason) errs.push({ field: 'edit-noapply-reason', msg: 'Falta la razón de por qué no aplicó' });
+        if (v.no_apply_reason === 'No tenía los requisitos') {
+          if (!v.no_apply_requirement) errs.push({ field: 'edit-noapply-req', msg: 'Falta qué requisito le faltó' });
+          if (v.no_apply_requirement === 'Otro' && !String(v.no_apply_requirement_other || '').trim()) errs.push({ field: 'edit-noapply-req-other', msg: 'Especifica el requisito' });
+        }
+      }
+      if (v.result === 'denied') {
+        if (!v.denied_reason) errs.push({ field: 'edit-denied-reason', msg: 'Falta la razón del negado' });
+        if (v.denied_reason === 'Otro' && !String(v.denied_reason_other || '').trim()) errs.push({ field: 'edit-denied-reason-other', msg: 'Especifica la razón' });
+        if (!String(v.denied_deal || '').trim()) errs.push({ field: 'edit-denied-deal', msg: 'Falta el Deal # del negado' });
+        if (v.sent_all_banks !== true) errs.push({ field: 'edit-sent-banks', msg: 'Confirma que se envió a todos los bancos' });
+        if (v.down_available == null) errs.push({ field: 'edit-down-available', msg: 'Escribe el down payment que tenía (0 si no tenía)' });
+      }
+      if (v.result === 'approved' && v.sale === false && v.down_available == null) errs.push({ field: 'edit-down-available', msg: 'Escribe el down payment que tenía (0 si no tenía)' });
+      if (v.result === 'approved' && v.sale === false && !String(v.approved_deal || '').trim()) errs.push({ field: 'edit-approved-deal', msg: 'Falta el Deal # del aprobado' });
+      return errs;
+    }
+
     async function saveEditedVisit() {
       if (!editingVisit) return;
       captureFormToCurrent();
+      const verrs = validateEditedVisit(editingVisit.current);
+      if (verrs.length) {
+        editErrors = new Set(verrs.map(e => e.field));
+        renderEditForm();
+        const first = document.getElementById(verrs[0].field);
+        if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
       // Capture values BEFORE any close (closeEditModal nulls editingVisit)
       const savedDate = editingVisit.date;
       const savedLoc = editingVisit.location;
@@ -3447,6 +4170,7 @@
       }
       try {
         await saveReport(savedDate, savedLoc, { ...report, visits: newVisits });
+        clearEditDraft(savedDate, savedLoc, savedIdx);
         const inDayDrawer = drawerDayContext && drawerDayContext.date === savedDate && drawerDayContext.location === savedLoc;
         closeEditModal();
         if (inDayDrawer) {
@@ -3464,10 +4188,239 @@
       if (!editingVisit) return;
       if (!confirm('¿Eliminar esta visita permanentemente?')) return;
       try {
-        await doDeleteVisit(editingVisit.date, editingVisit.location, editingVisit.idx);
+        const { date, location, idx } = editingVisit;
+        await doDeleteVisit(date, location, idx);
+        clearEditDraft(date, location, idx);
         closeEditModal();
         refreshAfterMutation();
       } catch (e) { alert('Error eliminando: ' + e.message); }
+    }
+
+    // ===== Aplicaciones online (paso adicional al reporte diario) =====
+    // Origen: Self-gen (la trae el mismo closer) | Call Center (la trae un setter).
+    // Resultado: approved | pending (aún buscando aprobación) | denied.
+    // Si approved: se guarda nombre + teléfono del cliente para cruzar después con visitas/ventas reales.
+    let editingApp = null;
+
+    function openAddAppModal(date, location) {
+      const report = loadReport(date, location);
+      if (!report) { alert('No existe reporte para ese día/locación.'); return; }
+      const blank = { scheduled_by: '', setter: '', closer: '', result: '', name: '', phone: '' };
+      editingApp = { date, location, idx: 'NEW', current: blank };
+      const monthFull = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+      const d = new Date(date + 'T00:00:00');
+      document.getElementById('app-edit-modal-title').textContent = '+ Aplicación online';
+      document.getElementById('app-edit-modal-save').textContent = 'Agregar';
+      document.getElementById('app-edit-modal-delete').style.display = 'none';
+      document.getElementById('app-edit-meta').textContent = `${location} · ${d.getDate()} de ${monthFull[d.getMonth()]} ${d.getFullYear()}`;
+      renderAppForm();
+      document.getElementById('app-edit-overlay').classList.add('show');
+    }
+
+    function openEditAppModal(date, location, idx) {
+      const report = loadReport(date, location);
+      if (!report || !(report.online_apps || [])[idx]) { alert('No se encontró la aplicación'); return; }
+      editingApp = { date, location, idx, current: JSON.parse(JSON.stringify(report.online_apps[idx])) };
+      const monthFull = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+      const d = new Date(date + 'T00:00:00');
+      document.getElementById('app-edit-modal-title').textContent = 'Editar aplicación online';
+      document.getElementById('app-edit-modal-save').textContent = 'Guardar cambios';
+      document.getElementById('app-edit-modal-delete').style.display = '';
+      document.getElementById('app-edit-meta').textContent = `${location} · ${d.getDate()} de ${monthFull[d.getMonth()]} ${d.getFullYear()}`;
+      renderAppForm();
+      document.getElementById('app-edit-overlay').classList.add('show');
+    }
+
+    function closeAppModal(e) {
+      if (e && e.target.id !== 'app-edit-overlay') return;
+      document.getElementById('app-edit-overlay').classList.remove('show');
+      editingApp = null;
+    }
+
+    function captureAppFormToCurrent() {
+      const a = editingApp.current;
+      const get = id => document.getElementById(id);
+      if (get('app-setter')) a.setter = get('app-setter').value;
+      if (get('app-closer')) a.closer = get('app-closer').value;
+      if (get('app-name')) a.name = get('app-name').value;
+      if (get('app-phone')) a.phone = get('app-phone').value;
+    }
+
+    function setAppScheduledBy(value) {
+      editingApp.current.scheduled_by = value;
+      if (value !== 'Call Center') editingApp.current.setter = '';
+      if (value === 'Call Center') editingApp.current.closer = ''; // el closer aún no entra en este punto
+      renderAppForm();
+    }
+    function setAppResult(value) {
+      editingApp.current.result = value;
+      if (value !== 'approved') { editingApp.current.name = ''; editingApp.current.phone = ''; }
+      renderAppForm();
+    }
+
+    function renderAppForm() {
+      const a = editingApp.current;
+      const isCallCenter = a.scheduled_by === 'Call Center';
+      const body = document.getElementById('app-edit-modal-body');
+      body.innerHTML = `
+        <div class="edit-section">
+          <div class="edit-section-title">¿Quién la trajo?</div>
+          <div class="edit-toggle-group">
+            <button type="button" class="edit-toggle-btn ${a.scheduled_by === 'Self-gen' ? 'act-yes' : ''}" onclick="captureAppFormToCurrent(); setAppScheduledBy('Self-gen')">Self-gen</button>
+            <button type="button" class="edit-toggle-btn ${a.scheduled_by === 'Call Center' ? 'act-yes' : ''}" onclick="captureAppFormToCurrent(); setAppScheduledBy('Call Center')">Call Center</button>
+          </div>
+        </div>
+        ${isCallCenter ? `
+        <div class="edit-section">
+          <div class="edit-field">
+            <label>Setter (queda a su nombre — el closer aún no entra hasta que el cliente llegue al dealer)</label>
+            ${buildAgentSelectHtml('app-setter', 'setter', null, a.setter || '')}
+          </div>
+        </div>` : `
+        <div class="edit-section">
+          <div class="edit-field">
+            <label>Closer (la trajo y la trabaja él mismo)</label>
+            ${buildAgentSelectHtml('app-closer', 'closer', editingApp.location, a.closer || '')}
+          </div>
+        </div>`}
+        <div class="edit-section">
+          <div class="edit-section-title">Resultado</div>
+          <div class="edit-toggle-group">
+            <button type="button" class="edit-toggle-btn ${a.result === 'approved' ? 'act-approved' : ''}" onclick="captureAppFormToCurrent(); setAppResult('approved')">Aprobada</button>
+            <button type="button" class="edit-toggle-btn ${a.result === 'pending' ? 'act-pending' : ''}" onclick="captureAppFormToCurrent(); setAppResult('pending')">Pendiente</button>
+            <button type="button" class="edit-toggle-btn ${a.result === 'denied' ? 'act-denied' : ''}" onclick="captureAppFormToCurrent(); setAppResult('denied')">Negada</button>
+          </div>
+          <div style="font-size:11px; color:var(--gray-400); margin-top:6px;">Pendiente = aún está buscando aprobación con algún banco.</div>
+        </div>
+        ${a.result === 'approved' ? `
+        <div class="edit-section">
+          <div class="edit-section-title" style="color:var(--green);">Cliente (para cruzar si llega a visitar/comprar)</div>
+          <div class="edit-grid-2">
+            <div class="edit-field">
+              <label>Nombre</label>
+              <input type="text" id="app-name" value="${escapeAttr(a.name)}" placeholder="Nombre completo">
+            </div>
+            <div class="edit-field">
+              <label>Teléfono</label>
+              <input type="tel" id="app-phone" value="${escapeAttr(a.phone)}" placeholder="000-000-0000">
+            </div>
+          </div>
+        </div>` : ''}
+      `;
+    }
+
+    function validateEditedApp(a) {
+      const errs = [];
+      if (!a.scheduled_by) errs.push('Elige quién la trajo (Self-gen o Call Center)');
+      // Call Center: queda a nombre del setter (el closer aún no entra hasta que el cliente llegue al dealer).
+      // Self-gen: el closer la trae y la trabaja él mismo, no hay setter de por medio.
+      if (a.scheduled_by === 'Call Center' && (!a.setter || a.setter === '')) errs.push('Elige el setter que la trajo');
+      if (a.scheduled_by === 'Self-gen' && !a.closer) errs.push('Elige el closer');
+      if (!a.result) errs.push('Elige el resultado');
+      if (a.result === 'approved' && !String(a.name || '').trim()) errs.push('Falta el nombre del cliente (aprobada)');
+      return errs;
+    }
+
+    async function saveEditedApp() {
+      if (!editingApp) return;
+      captureAppFormToCurrent();
+      const errs = validateEditedApp(editingApp.current);
+      if (errs.length) { alert('Faltan datos obligatorios:\n\n• ' + errs.join('\n• ')); return; }
+      const { date, location, idx, current } = editingApp;
+      const report = loadReport(date, location);
+      if (!report) { alert('No se encontró el reporte'); return; }
+      const newApps = [...(report.online_apps || [])];
+      if (idx === 'NEW') newApps.push(current); else newApps[idx] = current;
+      try {
+        await saveReport(date, location, { ...report, online_apps: newApps });
+        const inDayDrawer = drawerDayContext && drawerDayContext.date === date && drawerDayContext.location === location;
+        closeAppModal();
+        if (inDayDrawer) {
+          loadData();
+          openDayDrawer(date, location);
+        } else {
+          refreshAfterMutation();
+        }
+      } catch (e) { alert('Error guardando: ' + e.message); }
+    }
+
+    async function deleteEditedApp() {
+      if (!editingApp) return;
+      if (!confirm('¿Eliminar esta aplicación permanentemente?')) return;
+      const { date, location, idx } = editingApp;
+      const report = loadReport(date, location);
+      if (!report) return;
+      const newApps = (report.online_apps || []).filter((_, i) => i !== idx);
+      try {
+        await saveReport(date, location, { ...report, online_apps: newApps });
+        const inDayDrawer = drawerDayContext && drawerDayContext.date === date && drawerDayContext.location === location;
+        closeAppModal();
+        if (inDayDrawer) { loadData(); openDayDrawer(date, location); } else { refreshAfterMutation(); }
+      } catch (e) { alert('Error eliminando: ' + e.message); }
+    }
+
+    // Un día está "confirmado" si el manager marcó el flag O si ya registró al menos una aplicación.
+    // Distingue "0 confirmado por el manager" de "no pasó por el paso / se le olvidó".
+    function isAppsConfirmed(report) {
+      if (!report) return false;
+      return report.online_apps_confirmed === true || (report.online_apps || []).length > 0;
+    }
+
+    // "Confirmar: hoy fueron 0" — marca el día sin agregar ninguna aplicación.
+    async function confirmZeroApps(date, location) {
+      const report = loadReport(date, location);
+      if (!report) { alert('No se encontró el reporte'); return; }
+      if ((report.online_apps || []).length > 0) return; // ya tiene apps, no hace falta
+      try {
+        await saveReport(date, location, { ...report, online_apps: [], online_apps_confirmed: true });
+        const inDayDrawer = drawerDayContext && drawerDayContext.date === date && drawerDayContext.location === location;
+        if (inDayDrawer) { loadData(); openDayDrawer(date, location); } else { refreshAfterMutation(); }
+      } catch (e) { alert('Error confirmando: ' + e.message); }
+    }
+
+    // Junta todas las aplicaciones online del período/locación filtrados, con contexto de fecha/locación.
+    function getAllOnlineAppsFlat() {
+      const out = [];
+      _lastFiltered.forEach(r => {
+        (r.online_apps || []).forEach((a, i) => out.push({ ...a, _date: r.date, _location: r.location, _idx: i }));
+      });
+      return out;
+    }
+
+    // Lista de aplicaciones online — filter: 'all' | 'Call Center' | 'Self-gen' | 'approved' | 'pending' | 'denied'
+    function openAppsDrawer(filter) {
+      const all = getAllOnlineAppsFlat();
+      const isResult = ['approved', 'pending', 'denied'].includes(filter);
+      const rows = filter === 'all' ? all : all.filter(a => isResult ? a.result === filter : a.scheduled_by === filter);
+      const titles = { all: 'Todas las aplicaciones', 'Call Center': 'Aplicaciones · Call Center', 'Self-gen': 'Aplicaciones · Self-gen', approved: 'Aplicaciones aprobadas', pending: 'Aplicaciones pendientes', denied: 'Aplicaciones negadas' };
+      const resultBadge = { approved: '<span class="badge" style="background:#d1fae5;color:#065f46;">Aprobada</span>', pending: '<span class="badge" style="background:#fef3c7;color:#92400e;">Pendiente</span>', denied: '<span class="badge" style="background:#fee2e2;color:#991b1b;">Negada</span>' };
+      rows.sort((a, b) => b._date.localeCompare(a._date));
+      const rowsHtml = rows.length ? rows.map(a => {
+        const monthShort = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+        const d = new Date(a._date + 'T00:00:00');
+        const dateShort = `${d.getDate()} ${monthShort[d.getMonth()]}`;
+        const owner = appOwnerName(a) || '—';
+        return `<div class="rd-row" style="cursor:pointer;" onclick="document.querySelectorAll('.rd-overlay').forEach(x=>x.remove()); openEditAppModal('${a._date}','${a._location}',${a._idx})">
+          <div>
+            <div class="rd-name" style="font-weight:600;">${escapeHtml(owner)} <span style="font-weight:400;color:var(--gray-400);font-size:11px;">· ${escapeHtml(a.scheduled_by || '—')}</span></div>
+            <div style="font-size:11px;color:var(--gray-400);">${dateShort} · ${escapeHtml(a._location)}${a.name ? ' · ' + escapeHtml(a.name) : ''}${a.phone ? ' · ' + escapeHtml(a.phone) : ''}</div>
+          </div>
+          <div></div>
+          <div style="text-align:right;">${resultBadge[a.result] || ''}</div>
+        </div>`;
+      }).join('') : '<div class="empty-state" style="padding:16px 0;">Sin aplicaciones en este período.</div>';
+
+      const html = `<div class="rd-overlay" onclick="if(event.target===this)this.remove()">
+        <div class="rd-modal">
+          <div class="rd-header">
+            <div><div class="rd-title">${titles[filter] || 'Aplicaciones'}</div>
+            <div class="rd-sub">${rows.length} en el período seleccionado · toca una para editarla</div></div>
+            <button class="rd-close" onclick="this.closest('.rd-overlay').remove()">✕</button>
+          </div>
+          ${rowsHtml}
+        </div>
+      </div>`;
+      document.body.insertAdjacentHTML('beforeend', html);
     }
 
     async function quickDeleteVisit(date, location, idx) {
@@ -3698,6 +4651,64 @@
       }
     }
 
+    // ============== REASSIGN REPORT DATE (admin only) ==============
+
+    function openReassignModal() {
+      if (currentUserAccess !== 'all') { alert('Solo administradores pueden reasignar fechas'); return; }
+      if (!drawerDayContext) return;
+      const { date, location } = drawerDayContext;
+      document.getElementById('reassign-current').textContent = `${formatDateShort(date)} · ${location}`;
+      const di = document.getElementById('reassign-date');
+      di.value = date;
+      const t = new Date();
+      di.max = `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
+      document.getElementById('reassign-overlay').style.display = 'flex';
+    }
+
+    function closeReassignModal(e) {
+      if (e && e.target.id !== 'reassign-overlay') return;
+      document.getElementById('reassign-overlay').style.display = 'none';
+    }
+
+    async function patchReportDate(id, date) {
+      const res = await fetch(`${SUPA_URL}/rest/v1/ar_daily_reports?id=eq.${id}`, {
+        method: 'PATCH',
+        headers: { ...SUPA_HEADERS, Prefer: 'return=minimal' },
+        body: JSON.stringify({ date, last_edited_at: new Date().toISOString(), last_edited_by: currentUser })
+      });
+      if (!res.ok) throw new Error('PATCH date failed: ' + res.status + ' ' + await res.text());
+    }
+
+    async function submitReassign() {
+      if (currentUserAccess !== 'all' || !drawerDayContext) return;
+      const oldDate = drawerDayContext.date, location = drawerDayContext.location;
+      const newDate = document.getElementById('reassign-date').value;
+      if (!newDate) { alert('Selecciona la nueva fecha'); return; }
+      if (newDate === oldDate) { closeReassignModal(); return; }
+      const report = loadReport(oldDate, location);
+      if (!report) { alert('No se encontró el reporte'); return; }
+      const target = loadReport(newDate, location);
+      try {
+        if (!target) {
+          // Target date is free → simple move
+          await patchReportDate(report.id, newDate);
+        } else {
+          // Target date already has a report for this location → swap dates (no data lost)
+          if (!confirm(`El ${formatDateShort(newDate)} ya tiene un reporte en ${location}.\n\n¿Intercambiar las fechas de los dos reportes? Ninguno se borra — solo se cambian de día.`)) return;
+          const TEMP = '1970-01-01';
+          await patchReportDate(report.id, TEMP);    // free oldDate
+          await patchReportDate(target.id, oldDate); // target → oldDate
+          await patchReportDate(report.id, newDate); // report → newDate
+        }
+        await refreshReportsCache();
+        loadData();
+        if (typeof viewMode !== 'undefined' && viewMode === 'charts') loadCharts();
+        closeReassignModal();
+        closeDrawer();
+        openDayDrawer(newDate, location);
+      } catch (e) { alert('Error reasignando: ' + e.message); }
+    }
+
     function refreshAfterMutation() {
       loadData();
       if (viewMode === 'charts') loadCharts();
@@ -3791,6 +4802,23 @@
       c.render();
     }
 
+    // ----- Click-para-detalle en los gráficos -----
+    // Abre el drawer con la lista de visitas/ventas detrás de la barra o segmento tocado.
+    function drillTo(visits, filter, title) {
+      if (!visits || !visits.length) return;
+      openDrawer(filter || 'all', visits, title);
+    }
+    // Devuelve el objeto events para ApexCharts. handler(dataPointIndex, seriesIndex).
+    function chartEvents(handler) {
+      return {
+        dataPointSelection: function (e, ctx, cfg) {
+          try { handler(cfg.dataPointIndex, cfg.seriesIndex, cfg); } catch (err) { console.error('[drill]', err); }
+        }
+      };
+    }
+    // Base común: todas las visitas del período filtrado, con _date/_location/_idx para poder expandir cada una.
+    function _drillBase() { return getAllVisitsFlat(); }
+
     function renderEmpty(elId, msg) {
       const el = document.getElementById(elId);
       if (!el) return;
@@ -3818,7 +4846,7 @@
           out[r.date].visits++;
           if (v.applied === true) out[r.date].applied++;
           if (v.result === 'approved') out[r.date].approved++;
-          if (v.sale === true) {
+          if (isActiveSale(v)) {
             out[r.date].sales++;
             out[r.date].profit += v.net_profit || 0;
             out[r.date].downCol += v.down_collected || 0;
@@ -3855,7 +4883,7 @@
           if (v.scheduled_by === 'Self-gen') out[w].v_selfgen++;
           else if (v.scheduled_by === 'Call Center') out[w].v_callcenter++;
           else if (v.scheduled_by === 'Walk-in') out[w].v_walkin++;
-          if (v.sale === true) {
+          if (isActiveSale(v)) {
             out[w].sales++;
             const t = saleType(v);
             if (t === 'Self-gen') out[w].selfgen++;
@@ -3881,23 +4909,16 @@
         .slice(0, n);
     }
 
-    // Closer compensation model: 1 closer = 1.0 share, 2 closers = 0.5 each.
-    // Returns [[name, share], ...] sorted desc. Sum = total sales.
+    // Closer bucket model: solo, "A & B" en pareja, o sin asignar — nunca se reparte a los 2 al mismo tiempo.
+    // Returns [[name, count], ...] sorted desc. Sum = total sales.
     function topClosersByShare(sales, n = 10) {
-      const shares = {};
+      const counts = {};
       sales.forEach(v => {
-        const c1 = v.closer && !isNA(v.closer) ? v.closer.trim() : null;
-        const c2 = v.closer2 && !isNA(v.closer2) ? v.closer2.trim() : null;
-        if (c1 && c2) {
-          shares[c1] = (shares[c1] || 0) + 0.5;
-          shares[c2] = (shares[c2] || 0) + 0.5;
-        } else if (c1) {
-          shares[c1] = (shares[c1] || 0) + 1;
-        } else if (c2) {
-          shares[c2] = (shares[c2] || 0) + 1;
-        }
+        const key = closerBucketKey(v);
+        if (key === 'Sin asignar') return;
+        counts[key] = (counts[key] || 0) + 1;
       });
-      return Object.entries(shares)
+      return Object.entries(counts)
         .sort((a, b) => b[1] - a[1])
         .slice(0, n);
     }
@@ -3906,15 +4927,11 @@
       return Number.isInteger(v) ? String(v) : v.toFixed(1);
     }
 
-    // Returns share contribution per closer for a visit: {[name]: 1.0|0.5}
+    // Returns el bucket que le corresponde a esta visita: {[name]: 1}
     function closerSharesForVisit(v) {
-      const c1 = v.closer && !isNA(v.closer) ? v.closer.trim() : null;
-      const c2 = v.closer2 && !isNA(v.closer2) ? v.closer2.trim() : null;
-      const out = {};
-      if (c1 && c2) { out[c1] = 0.5; out[c2] = 0.5; }
-      else if (c1) { out[c1] = 1; }
-      else if (c2) { out[c2] = 1; }
-      return out;
+      const key = closerBucketKey(v);
+      if (key === 'Sin asignar') return {};
+      return { [key]: 1 };
     }
 
     function selfGenRateByCloser(salesVisits, minSales = 3) {
@@ -3943,7 +4960,7 @@
         Object.entries(shares).forEach(([c, sh]) => {
           if (!map[c]) map[c] = { approved: 0, sold: 0 };
           map[c].approved += sh;
-          if (v.sale === true) map[c].sold += sh;
+          if (isActiveSale(v)) map[c].sold += sh;
         });
       });
       return Object.entries(map)
@@ -3971,7 +4988,7 @@
       }
       const reports = getFilteredReports();
       const visits = reports.flatMap(r => (r.visits || []).map(v => ({...v, _date: r.date, _location: r.location})));
-      const sales = visits.filter(v => v.sale === true);
+      const sales = visits.filter(isActiveSale);
       const approvedVisits = visits.filter(v => v.result === 'approved');
 
       renderSalesByDay(reports);
@@ -4009,23 +5026,30 @@
             name: loc,
             data: dates.map(d => {
               const day = reports.find(r => r.date === d && r.location === loc);
-              return day ? (day.visits || []).filter(v => v.sale === true).length : 0;
+              return day ? (day.visits || []).filter(isActiveSale).length : 0;
             })
           }))
         : [{
             name: 'Ventas',
             data: dates.map(d => {
               const dayReports = reports.filter(r => r.date === d);
-              return dayReports.reduce((s, r) => s + (r.visits || []).filter(v => v.sale === true).length, 0);
+              return dayReports.reduce((s, r) => s + (r.visits || []).filter(isActiveSale).length, 0);
             })
           }];
       mountChart('chart-sales-day', {
-        chart: { type: 'line', height: 280, toolbar: { show: false }, fontFamily: 'inherit' },
+        chart: { type: 'line', height: 280, toolbar: { show: false }, fontFamily: 'inherit',
+          events: { markerClick: function (e, ctx, cfg) {
+            try {
+              const d = dates[cfg.dataPointIndex]; if (!d) return;
+              const loc = showSplit ? ['Orlando','Kissimmee'][cfg.seriesIndex] : null;
+              drillTo(_drillBase().filter(v => v._date === d && isActiveSale(v) && (!loc || (v._location || '').toLowerCase() === loc.toLowerCase())), 'sold', 'Ventas ' + formatDateShort(d) + (loc ? ' · ' + loc : ''));
+            } catch (err) { console.error('[drill day]', err); }
+          } } },
         series,
         xaxis: { categories: dates.map(formatDateShort), labels: { style: { fontSize: '11px' } } },
         stroke: { curve: 'smooth', width: 2.5 },
         colors: showSplit ? [CHART_COLORS.orlando, CHART_COLORS.kissimmee] : ['#e94560'],
-        markers: { size: 3 },
+        markers: { size: 4, hover: { sizeOffset: 3 } },
         dataLabels: { enabled: false },
         tooltip: { y: { formatter: v => `${v} ventas` } },
         legend: { show: showSplit, position: 'top' },
@@ -4117,7 +5141,8 @@
       if (!top.length) return renderEmpty('chart-top-closers', 'Sin closers asignados — llena las ventas para ver leaderboard');
       const dynamicHeight = Math.max(280, top.length * 36 + 80);
       mountChart('chart-top-closers', {
-        chart: { type: 'bar', height: dynamicHeight, toolbar: { show: false }, fontFamily: 'inherit' },
+        chart: { type: 'bar', height: dynamicHeight, toolbar: { show: false }, fontFamily: 'inherit',
+          events: chartEvents(i => { const name = top[i][0]; drillTo(_drillBase().filter(v => isActiveSale(v) && closerBucketKey(v) === name), 'sold', 'Ventas de ' + name); }) },
         series: [{ name: 'Ventas', data: top.map(t => t[1]) }],
         xaxis: {
           categories: top.map(t => t[0]),
@@ -4140,7 +5165,8 @@
       if (!top.length) return renderEmpty('chart-top-setters', 'Sin setters asignados — llena las ventas para ver leaderboard');
       const dynamicHeight = Math.max(280, top.length * 36 + 80);
       mountChart('chart-top-setters', {
-        chart: { type: 'bar', height: dynamicHeight, toolbar: { show: false }, fontFamily: 'inherit' },
+        chart: { type: 'bar', height: dynamicHeight, toolbar: { show: false }, fontFamily: 'inherit',
+          events: chartEvents(i => { const name = top[i][0]; drillTo(_drillBase().filter(v => isActiveSale(v) && (v.setter || '').trim() === name), 'sold', 'Ventas agendadas por ' + name); }) },
         series: [{ name: 'Ventas', data: top.map(t => t[1]) }],
         xaxis: { categories: top.map(t => t[0]) },
         plotOptions: { bar: { horizontal: true, borderRadius: 4, distributed: true } },
@@ -4156,7 +5182,8 @@
       if (!data.length) return renderEmpty('chart-selfgen-rate', 'Sin closers con ≥3 ventas y data Self-gen marcada');
       const sgHeight = Math.max(280, data.length * 36 + 80);
       mountChart('chart-selfgen-rate', {
-        chart: { type: 'bar', height: sgHeight, toolbar: { show: false }, fontFamily: 'inherit' },
+        chart: { type: 'bar', height: sgHeight, toolbar: { show: false }, fontFamily: 'inherit',
+          events: chartEvents(i => openCloserFunnelDetail(data[i].closer)) },
         series: [{ name: 'Self-gen %', data: data.map(d => +d.rate.toFixed(1)) }],
         xaxis: { categories: data.map(d => `${d.closer} (${fmtShare(d.sg)}/${fmtShare(d.total)})`), labels: { formatter: v => v + '%' }, min: 0, max: 100 },
         plotOptions: { bar: { horizontal: true, borderRadius: 4 } },
@@ -4174,7 +5201,8 @@
       const colors = data.map(d => d.rate >= 80 ? '#10b981' : (d.rate >= 60 ? '#f59e0b' : '#e94560'));
       const crHeight = Math.max(280, data.length * 36 + 80);
       mountChart('chart-close-rate', {
-        chart: { type: 'bar', height: crHeight, toolbar: { show: false }, fontFamily: 'inherit' },
+        chart: { type: 'bar', height: crHeight, toolbar: { show: false }, fontFamily: 'inherit',
+          events: chartEvents(i => openCloserFunnelDetail(data[i].closer)) },
         series: [{ name: 'Close rate %', data: data.map(d => +d.rate.toFixed(1)) }],
         xaxis: { categories: data.map(d => `${d.closer} (${fmtShare(d.sold)}/${fmtShare(d.approved)})`), labels: { formatter: v => v + '%' }, min: 0, max: 100 },
         plotOptions: { bar: { horizontal: true, borderRadius: 4, distributed: true } },
@@ -4197,7 +5225,7 @@
         visits: v.length,
         applied: v.filter(x => x.applied === true).length,
         approved: v.filter(x => x.result === 'approved').length,
-        sales: v.filter(x => x.sale === true).length
+        sales: v.filter(isActiveSale).length
       };
     }
 
@@ -4212,8 +5240,11 @@
       if (totalAcrossChannels === 0) {
         return renderEmpty('chart-funnel-by-channel', 'Sin data nueva — el funnel por canal aparece cuando las visitas tengan "Quién agendó"');
       }
+      const stageFilter = ['all', 'applied', 'approved', 'sold'];
+      const stageWord = ['visitas', 'aplicaron', 'aprobados', 'ventas'];
       mountChart('chart-funnel-by-channel', {
-        chart: { type: 'bar', height: 320, toolbar: { show: false }, fontFamily: 'inherit' },
+        chart: { type: 'bar', height: 320, toolbar: { show: false }, fontFamily: 'inherit',
+          events: chartEvents((i, s) => { const ch = CHANNELS[s]; drillTo(_drillBase().filter(v => v.scheduled_by === ch), stageFilter[i], ch + ' — ' + stageWord[i]); }) },
         series,
         xaxis: { categories: stages },
         colors: CHANNEL_COLORS,
@@ -4235,7 +5266,8 @@
         return renderEmpty('chart-close-by-channel', 'Sin aprobados con canal asignado');
       }
       mountChart('chart-close-by-channel', {
-        chart: { type: 'bar', height: 280, toolbar: { show: false }, fontFamily: 'inherit' },
+        chart: { type: 'bar', height: 280, toolbar: { show: false }, fontFamily: 'inherit',
+          events: chartEvents(i => { const ch = data[i].channel; drillTo(_drillBase().filter(v => v.scheduled_by === ch && isActiveSale(v)), 'sold', ch + ' — ventas'); }) },
         series: [{ name: 'Close rate %', data: data.map(d => +d.rate.toFixed(1)) }],
         xaxis: { categories: data.map(d => `${d.channel} (${d.sales}/${d.approved})`), labels: { formatter: v => v + '%' }, min: 0, max: 100 },
         plotOptions: { bar: { horizontal: true, borderRadius: 4, distributed: true } },
@@ -4258,7 +5290,8 @@
         return renderEmpty('chart-profit-by-channel', 'Sin ventas con canal asignado');
       }
       mountChart('chart-profit-by-channel', {
-        chart: { type: 'bar', height: 280, toolbar: { show: false }, fontFamily: 'inherit' },
+        chart: { type: 'bar', height: 280, toolbar: { show: false }, fontFamily: 'inherit',
+          events: chartEvents(i => { const ch = data[i].channel; drillTo(_drillBase().filter(v => v.scheduled_by === ch && isActiveSale(v)), 'sold', ch + ' — ventas'); }) },
         series: [{ name: 'Net Profit avg', data: data.map(d => Math.round(d.avg)) }],
         xaxis: { categories: data.map(d => `${d.channel} (${d.count})`) },
         colors: CHANNEL_COLORS,
@@ -4282,7 +5315,8 @@
       const series = labels.map(k => counts[k]);
       if (!series.length) return renderEmpty('chart-scheduledby-donut', 'Sin data nueva');
       mountChart('chart-scheduledby-donut', {
-        chart: { type: 'donut', height: 300, fontFamily: 'inherit' },
+        chart: { type: 'donut', height: 300, fontFamily: 'inherit',
+          events: chartEvents((i, s) => { const lab = labels[s]; drillTo(_drillBase().filter(v => v.scheduled_by === lab), 'all', lab + ' — visitas'); }) },
         series, labels,
         colors: labels.map(l => l === 'Self-gen' ? '#10b981' : l === 'Call Center' ? '#3b82f6' : '#f97316'),
         legend: { position: 'bottom' },
@@ -4303,7 +5337,8 @@
       if (!series.length) return renderEmpty('chart-downmethod-donut', 'Sin data — llena Método del Down en las ventas');
       const colorMap = { 'Cash':'#10b981', 'Tarjeta':'#3b82f6', 'Zelle':'#8b5cf6', 'Tradein':'#f97316', 'Otro':'#94a3b8' };
       mountChart('chart-downmethod-donut', {
-        chart: { type: 'donut', height: 300, fontFamily: 'inherit' },
+        chart: { type: 'donut', height: 300, fontFamily: 'inherit',
+          events: chartEvents((i, s) => { const lab = labels[s]; drillTo(_drillBase().filter(v => isActiveSale(v) && v.down_method === lab && (v.down_collected || 0) > 0), 'sold', 'Down: ' + lab); }) },
         series, labels,
         colors: labels.map(l => colorMap[l] || '#94a3b8'),
         legend: { position: 'bottom' },
@@ -4324,7 +5359,8 @@
       const labels = Object.keys(counts).filter(k => counts[k] > 0);
       const series = labels.map(k => counts[k]);
       mountChart('chart-source-donut', {
-        chart: { type: 'donut', height: 300, fontFamily: 'inherit' },
+        chart: { type: 'donut', height: 300, fontFamily: 'inherit',
+          events: chartEvents((i, s) => { const lab = labels[s]; drillTo(_drillBase().filter(v => { if (!isActiveSale(v)) return false; if (lab === 'Sin data') return !['Marketing','Facebook Marketplace','Others'].includes(v.source); return v.source === lab; }), 'sold', 'Origen: ' + lab); }) },
         series, labels,
         colors: ['#3b82f6','#1877f2','#94a3b8','#e5e7eb'],
         legend: { position: 'bottom' },
@@ -4341,8 +5377,10 @@
       const labels = top.map(t => t[0]);
       const series = top.map(t => t[1]);
       if (others > 0) { labels.push('Otros'); series.push(others); }
+      const top5Names = top.map(t => t[0]);
       mountChart('chart-lender-donut', {
-        chart: { type: 'donut', height: 300, fontFamily: 'inherit' },
+        chart: { type: 'donut', height: 300, fontFamily: 'inherit',
+          events: chartEvents((i, s) => { const lab = labels[s]; drillTo(_drillBase().filter(v => { if (!isActiveSale(v) || !v.lender || isNA(v.lender)) return false; return lab === 'Otros' ? !top5Names.includes(v.lender) : v.lender === lab; }), 'sold', 'Lender: ' + lab); }) },
         series, labels,
         colors: ['#10b981','#3b82f6','#f59e0b','#8b5cf6','#e94560','#94a3b8'],
         legend: { position: 'bottom' },
@@ -4360,7 +5398,7 @@
         const w = weekOfMonth(r.date);
         const d = new Date(r.date + 'T00:00:00');
         const dayIdx = d.getDay();
-        const sales = (r.visits || []).filter(v => v.sale === true).length;
+        const sales = (r.visits || []).filter(isActiveSale).length;
         matrix[w-1].data[dayIdx].y += sales;
       });
       // Reverse so Sem 1 is on top
@@ -4397,7 +5435,7 @@
       const goalArr = months.map(() => MONTHLY_GOAL_PER_LOCATION * locs.length);
       const trackingArr = months.map(m => {
         return reports.filter(r => r.date.startsWith(m))
-          .reduce((s, r) => s + (r.visits || []).filter(v => v.sale === true).length, 0);
+          .reduce((s, r) => s + (r.visits || []).filter(isActiveSale).length, 0);
       });
       // Pace projection only for current month: tracking / dayElapsed * daysInMonth
       const today = new Date();
@@ -4432,7 +5470,7 @@
       const locs = filterLocation === 'all' ? 2 : 1;
       const months = [...new Set(reports.map(r => r.date.slice(0,7)))];
       const totalGoal = MONTHLY_GOAL_PER_LOCATION * locs * months.length;
-      const totalSales = reports.reduce((s, r) => s + (r.visits || []).filter(v => v.sale === true).length, 0);
+      const totalSales = reports.reduce((s, r) => s + (r.visits || []).filter(isActiveSale).length, 0);
       const pct = totalGoal > 0 ? Math.min(150, Math.round(totalSales / totalGoal * 100)) : 0;
       mountChart('chart-gauge', {
         chart: { type: 'radialBar', height: 320, fontFamily: 'inherit' },
@@ -4461,7 +5499,7 @@
         const m = r.date.slice(0,7);
         if (!byMonth[m]) byMonth[m] = { down: 0, pd: 0 };
         (r.visits || []).forEach(v => {
-          if (v.sale === true) {
+          if (isActiveSale(v)) {
             byMonth[m].down += v.down_collected || 0;
             byMonth[m].pd += v.down_deferred || 0;
           }
@@ -4499,7 +5537,7 @@
       if (!reports.length) return renderEmpty('chart-pay-avg');
       let totalDown = 0, totalPd = 0, salesCount = 0;
       reports.forEach(r => (r.visits || []).forEach(v => {
-        if (v.sale === true) {
+        if (isActiveSale(v)) {
           totalDown += v.down_collected || 0;
           totalPd += v.down_deferred || 0;
           salesCount++;
@@ -4564,7 +5602,7 @@
       const byYM = {}; // 'YYYY-MM' -> sales count
       all.forEach(r => {
         const ym = r.date.slice(0,7);
-        const sales = (r.visits || []).filter(v => v.sale === true).length;
+        const sales = (r.visits || []).filter(isActiveSale).length;
         byYM[ym] = (byYM[ym] || 0) + sales;
       });
       const monthNames = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
@@ -4870,14 +5908,20 @@
       const savedUser = localStorage.getItem('ar_dash_user');
       if (savedUser) {
         try {
-          const res = await fetch(`${SUPA_URL}/rest/v1/app_users?name=eq.${encodeURIComponent(savedUser)}&select=name,location_access`, { headers: SUPA_HEADERS });
-          const data = await res.json();
-          if (data && data.length > 0) {
-            currentUser = data[0].name;
-            currentUserAccess = data[0].location_access || 'all';
-            localStorage.setItem('ar_dash_access', currentUserAccess);
-            await enterDashboard();
-            return;
+          // Sesión guardada: verifica que el usuario siga ACTIVO (Saúl pudo desactivarlo en Settings)
+          const chk = await (await fetch(`${SUPA_URL}/rest/v1/dashboard_access?ukey=eq.ventas:${encodeURIComponent(savedUser.toLowerCase())}&select=active`, { headers: SUPA_HEADERS })).json();
+          if (Array.isArray(chk) && chk.length && chk[0].active === false) {
+            localStorage.removeItem('ar_dash_user');
+          } else {
+            const res = await fetch(`${SUPA_URL}/rest/v1/app_users?name=eq.${encodeURIComponent(savedUser)}&select=name,location_access`, { headers: SUPA_HEADERS });
+            const data = await res.json();
+            if (data && data.length > 0) {
+              currentUser = data[0].name;
+              currentUserAccess = data[0].location_access || 'all';
+              localStorage.setItem('ar_dash_access', currentUserAccess);
+              await enterDashboard();
+              return;
+            }
           }
         } catch (e) {}
       }
@@ -4885,6 +5929,156 @@
       document.getElementById('login-screen').style.display = 'flex';
       document.getElementById('login-password').focus();
     })();
+
+    function openRateDrilldown(metric) {
+      const metaMap = {
+        va: { title: 'Visit → Apply', num: 'applied', den: 'visits', denLabel: 'visitas', target: 0.70 },
+        aa: { title: 'Apply → Approve', num: 'approved', den: 'applied', denLabel: 'aplicaron', target: 0.45 },
+        as: { title: 'Approve → Sale', num: 'sold', den: 'approved', denLabel: 'aprobados', target: 0.75 },
+        vs: { title: 'Visit → Sale', num: 'sold', den: 'visits', denLabel: 'visitas', target: 0.20 }
+      };
+      const m = metaMap[metric];
+      if (!m) return;
+
+      // Build per-closer stats from current filtered data — 1 visita = 1 bucket (solo, pareja "A & B", o sin asignar)
+      const map = {};
+      _lastFiltered.forEach(r => {
+        (r.visits || []).forEach(v => {
+          const name = closerBucketKey(v);
+          if (!map[name]) map[name] = { visits: 0, applied: 0, approved: 0, sold: 0 };
+          map[name].visits++;
+          if (v.applied === true) map[name].applied++;
+          if (v.result === 'approved') map[name].approved++;
+          if (isActiveSale(v)) map[name].sold++;
+        });
+      });
+
+      const rows = Object.entries(map)
+        .filter(([_, s]) => s[m.den] >= 1) // mostrar a todo closer con al menos 1 en el denominador (el X/Y ya indica la muestra)
+        .map(([name, s]) => ({
+          name,
+          num: s[m.num],
+          den: s[m.den],
+          rate: s[m.den] > 0 ? s[m.num] / s[m.den] : 0
+        }))
+        .sort((a, b) => a.rate - b.rate); // worst first
+
+      if (rows.length === 0) { alert('No hay suficiente data por closer para este período.'); return; }
+
+      const maxRate = Math.max(...rows.map(r => r.rate), 0.01);
+      const rowsHtml = rows.map((r, i) => {
+        const pct = (r.rate * 100).toFixed(1) + '%';
+        const cls = r.rate < m.target * 0.8 ? 'rd-worst' : r.rate < m.target ? 'rd-mid' : 'rd-best';
+        const barColor = r.rate < m.target * 0.8 ? 'var(--red)' : r.rate < m.target ? 'var(--yellow)' : 'var(--green)';
+        const barW = Math.round(r.rate / maxRate * 100);
+        const rankCls = i === rows.length-1 ? 'rd-rank1' : '';
+        return `<div class="rd-row" data-closer-name="${escapeAttr(r.name)}" onclick="openCloserFunnelDetail(this.dataset.closerName)" style="cursor:pointer;" title="Ver detalle de ${escapeAttr(r.name)}">
+          <div>
+            <div class="rd-name ${rankCls}">${i === rows.length-1 ? '🏆 ' : i === 0 ? '⚠️ ' : ''}${r.name}</div>
+            <div class="rd-bar-wrap"><div class="rd-bar" style="width:${barW}%;background:${barColor};"></div></div>
+          </div>
+          <div class="rd-nums">${r.num} / ${r.den}<br><span style="font-size:10px;color:var(--gray-400);">${m.denLabel}</span></div>
+          <div class="rd-pct ${cls}">${pct}</div>
+        </div>`;
+      }).join('');
+
+      const html = `<div class="rd-overlay" onclick="if(event.target===this)this.remove()">
+        <div class="rd-modal">
+          <div class="rd-header">
+            <div><div class="rd-title">${m.title} — por closer</div>
+            <div class="rd-sub">Peores primero · target ${(m.target*100).toFixed(0)}% · toca un nombre para ver su detalle</div></div>
+            <button class="rd-close" onclick="this.closest('.rd-overlay').remove()">✕</button>
+          </div>
+          <div class="rd-row rd-head"><div>Closer</div><div>Números</div><div style="text-align:right">%</div></div>
+          ${rowsHtml}
+        </div>
+      </div>`;
+      document.body.insertAdjacentHTML('beforeend', html);
+    }
+
+    // Detalle de un closer: origen de sus visitas (Self-gen/Call Center/Walk-in) + en qué paso del embudo se quedaron.
+    function openCloserFunnelDetail(name) {
+      // Match exacto por bucket — si "name" es una pareja ("A & B"), solo trae SUS visitas en pareja,
+      // no las visitas solas de A ni las de B (evita mezclar/duplicar).
+      const visits = [];
+      _lastFiltered.forEach(r => {
+        (r.visits || []).forEach(v => {
+          if (closerBucketKey(v) === name) visits.push(v);
+        });
+      });
+      if (visits.length === 0) { alert('No hay visitas para ' + name + ' en este período.'); return; }
+
+      const origins = ['Self-gen', 'Call Center', 'Walk-in', 'Sin dato'];
+      const byOrigin = name2 => visits.filter(v => {
+        const sb = v.scheduled_by;
+        const label = (sb === 'Self-gen' || sb === 'Call Center' || sb === 'Walk-in') ? sb : 'Sin dato';
+        return label === name2;
+      });
+
+      // Origen de sus visitas — barra + su propio mini-embudo (visitas → aplicó → aprobó → vendió)
+      const originRows = origins.map(o => {
+        const ov = byOrigin(o);
+        if (ov.length === 0) return '';
+        const pct = Math.round(ov.length / visits.length * 100);
+        const oApplied = ov.filter(v => v.applied === true).length;
+        const oApproved = ov.filter(v => v.result === 'approved').length;
+        const oSold = ov.filter(v => isActiveSale(v)).length;
+        return `<div style="margin-bottom:10px;">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span style="font-size:12px; color:var(--gray-600); width:110px; flex:0 0 auto;">${o}</span>
+            <span style="flex:1; height:14px; background:var(--gray-100); border-radius:4px; overflow:hidden; display:block;"><span style="display:block; height:100%; width:${pct}%; background:var(--blue); border-radius:4px;"></span></span>
+            <span style="font-size:12px; font-weight:700; width:70px; text-align:right; color:var(--gray-700);">${ov.length} · ${pct}%</span>
+          </div>
+          <div style="font-size:11px; color:var(--gray-400); margin:3px 0 0 120px;">${ov.length} visitas → ${oApplied} aplicó → ${oApproved} aprobó → <b style="color:${oSold>0?'var(--green)':'var(--gray-400)'};">${oSold} vendió</b></div>
+        </div>`;
+      }).join('');
+
+      // Embudo total: visitas -> aplicó -> aprobado -> vendido
+      const total = visits.length;
+      const applied = visits.filter(v => v.applied === true).length;
+      const noApplied = visits.filter(v => v.applied === false).length;
+      const approved = visits.filter(v => v.result === 'approved').length;
+      const denied = visits.filter(v => v.result === 'denied').length;
+      const sold = visits.filter(v => isActiveSale(v)).length;
+      const approvedNoSale = visits.filter(v => v.result === 'approved' && v.sale === false).length;
+
+      const fmtStep = (label, n, ofN, subLabel) => {
+        const pct = ofN > 0 ? Math.round(n / ofN * 100) : 0;
+        return `<div class="rd-funnel-step">
+          <div class="rd-funnel-num">${n}</div>
+          <div class="rd-funnel-lab">${label}</div>
+          ${ofN > 0 ? `<div class="rd-funnel-sub">${pct}% ${subLabel}</div>` : ''}
+        </div>`;
+      };
+
+      const funnelHtml = `<div style="display:flex; align-items:stretch; gap:8px; flex-wrap:wrap;">
+        ${fmtStep('Visitas', total, 0, '')}
+        <div class="rd-funnel-arr">›</div>
+        ${fmtStep('Aplicaron', applied, total, 'de las visitas')}
+        <div class="rd-funnel-arr">›</div>
+        ${fmtStep('Aprobados', approved, applied, 'de los que aplicaron')}
+        <div class="rd-funnel-arr">›</div>
+        ${fmtStep('Vendidos', sold, approved, 'de los aprobados')}
+      </div>
+      <div style="margin-top:10px; font-size:12px; color:var(--gray-500); line-height:1.6;">
+        Se quedaron en el camino: <b>${noApplied}</b> no aplicaron · <b>${denied}</b> negados · <b>${approvedNoSale}</b> aprobados sin cerrar
+      </div>`;
+
+      const html = `<div class="rd-overlay" onclick="if(event.target===this)this.remove()">
+        <div class="rd-modal">
+          <div class="rd-header">
+            <div><div class="rd-title">${escapeHtml(name)}</div>
+            <div class="rd-sub">${total} visitas en el período seleccionado</div></div>
+            <button class="rd-close" onclick="this.closest('.rd-overlay').remove()">✕</button>
+          </div>
+          <div style="font-size:13px; font-weight:700; margin:14px 0 10px; color:var(--gray-700);">Origen de sus visitas</div>
+          ${originRows}
+          <div style="font-size:13px; font-weight:700; margin:18px 0 10px; color:var(--gray-700);">En qué paso se quedaron</div>
+          ${funnelHtml}
+        </div>
+      </div>`;
+      document.body.insertAdjacentHTML('beforeend', html);
+    }
 
     document.getElementById('login-password').addEventListener('keydown', e => {
       if (e.key === 'Enter') tryLogin();
