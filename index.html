@@ -2360,7 +2360,7 @@
       applyLocationAccess();
       applyFinancialTabVisibility();
       await touchAccess();
-      await Promise.all([refreshReportsCache(), refreshAgentsCache()]);
+      await Promise.all([refreshReportsCache(), refreshAgentsCache(), cargarAppsOnline()]);
       loadData();
       updateDateRangeUI();
     }
@@ -3172,10 +3172,11 @@
             if (isActiveSale(x)) { sl++; np += x.net_profit || 0; dc += x.down_collected || 0; }
           });
           const loc = (r.location || '—').toLowerCase();
-          const appN = (r.online_apps || []).length;
+          const real = appsDelDia(r.date, r.location);
+          const appN = real !== null ? real : (r.online_apps || []).length;
           const appConfirmed = isAppsConfirmed(r);
           const appCell = appConfirmed
-            ? `<span class="${appN === 0 ? 'td-zero' : ''}">${appN}</span>`
+            ? `<span class="${appN === 0 ? 'td-zero' : ''}"${real !== null ? ' title="Contadas por la plataforma de aplicaciones online"' : ''}>${appN}</span>`
             : `<span style="color:#d97706;font-weight:700;" title="Falta confirmar aplicaciones online de este día">⚠ falta</span>`;
           return `
             <tr data-date="${r.date}" data-location="${r.location || ''}">
@@ -3405,7 +3406,8 @@
         if (drawerDayContext) {
           const dc = drawerDayContext;
           const dayReport = loadReport(dc.date, dc.location);
-          const appCount = (dayReport && dayReport.online_apps || []).length;
+          const realD = dayReport ? appsDelDia(dayReport.date, dayReport.location) : null;
+          const appCount = realD !== null ? realD : (dayReport && dayReport.online_apps || []).length;
           const confirmed = isAppsConfirmed(dayReport);
           // Banner de estado de aplicaciones online del día — obliga a confirmar (aunque sean 0)
           let appBanner = '';
@@ -4361,8 +4363,35 @@
 
     // Un día está "confirmado" si el manager marcó el flag O si ya registró al menos una aplicación.
     // Distingue "0 confirmado por el manager" de "no pasó por el paso / se le olvidó".
+    /* Las aplicaciones online ya no se cuentan a mano: se leen de la plataforma donde
+       los vendedores las llenan (ar-app). El conteo manual decia 0 TODOS los dias
+       mientras la plataforma tenia 34 reales — los managers no las estaban metiendo.
+       Solo trae dia, tienda y cuantas: ningun dato de cliente. */
+    const APPS_DESDE = '2026-08-25';   // antes de esa fecha la plataforma no existia
+    window._appsPlataforma = null;
+    async function cargarAppsOnline(){
+      try{
+        const r = await fetch(`${SUPA_URL}/rest/v1/rpc/ar_oa_por_dia`,
+          { method:'POST', headers:{...SUPA_HEADERS,'Content-Type':'application/json'}, body:'{}' });
+        const filas = await r.json();
+        if (!Array.isArray(filas)) return;
+        const m = {};
+        filas.forEach(f => { m[f.dia + '|' + f.tienda] = f.n; });
+        window._appsPlataforma = m;
+      }catch(e){ window._appsPlataforma = null; }
+    }
+    /* Cuantas aplicaciones ese dia en esa tienda. Desde que existe la plataforma manda
+       ella; para dias anteriores, lo que se hubiera anotado a mano. */
+    function appsDelDia(fecha, tienda){
+      const m = window._appsPlataforma;
+      if (m && fecha >= APPS_DESDE) return m[fecha + '|' + (tienda || 'sin tienda')] || 0;
+      return null;   // null = no hay dato de la plataforma, usar el manual
+    }
+
     function isAppsConfirmed(report) {
       if (!report) return false;
+      // Desde que la plataforma cuenta, ya no hay nada que "confirmar" a mano.
+      if (report.date >= APPS_DESDE && window._appsPlataforma) return true;
       return report.online_apps_confirmed === true || (report.online_apps || []).length > 0;
     }
 
