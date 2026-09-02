@@ -2939,22 +2939,40 @@
       renderReasonBars('reasons-noapply', noApplyReasons, 'var(--yellow)', 'noapply');
       renderReasonBars('reasons-denied', deniedReasons, 'var(--red)', 'denied');
 
-      // Aplicaciones online (paso adicional, separado de las visitas físicas)
-      const allApps = getAllOnlineAppsFlat();
-      const appCC = allApps.filter(a => a.scheduled_by === 'Call Center').length;
-      const appSG = allApps.filter(a => a.scheduled_by === 'Self-gen').length;
-      const appApproved = allApps.filter(a => a.result === 'approved').length;
-      const appPending = allApps.filter(a => a.result === 'pending').length;
-      const appDenied = allApps.filter(a => a.result === 'denied').length;
-      document.getElementById('app-kpi-total').textContent = allApps.length;
-      document.getElementById('app-kpi-cc').textContent = appCC;
-      document.getElementById('app-kpi-sg').textContent = appSG;
-      document.getElementById('app-kpi-approved').textContent = appApproved;
-      document.getElementById('app-kpi-pending').textContent = appPending;
-      document.getElementById('app-kpi-denied').textContent = appDenied;
+      // Aplicaciones online (paso adicional, separado de las visitas físicas).
+      // Desde que existe la plataforma (ar-app) manda ella: el conteo manual decía 0
+      // todos los días de agosto mientras había 116 reales. Para períodos anteriores
+      // se sigue usando lo que los managers anotaron a mano.
+      const appsPlat = appsPlataformaDelPeriodo();
+      const usaPlat = appsPlat !== null;
+      const allApps = usaPlat ? appsPlat : getAllOnlineAppsFlat();
+      // La plataforma no pregunta si vino del call center o el vendedor la generó:
+      // esos dos cuadros se quedan en "—" en vez de mostrar un cero que no es cierto.
+      const appCC = usaPlat ? null : allApps.filter(a => a.scheduled_by === 'Call Center').length;
+      const appSG = usaPlat ? null : allApps.filter(a => a.scheduled_by === 'Self-gen').length;
+      const vd = v => usaPlat ? allApps.filter(a => a.veredicto === v).length : 0;
+      const appApproved = usaPlat ? vd('aprobado') : allApps.filter(a => a.result === 'approved').length;
+      const appDenied   = usaPlat ? vd('negado')   : allApps.filter(a => a.result === 'denied').length;
+      // Pendiente = todavía sin resolver: sin veredicto o "con posibilidad".
+      // Las de "Historial" no cuentan: son del formulario viejo y nadie las revisó nunca.
+      const appPending  = usaPlat ? allApps.filter(a => !a.veredicto || a.veredicto === 'posible').length
+                                  : allApps.filter(a => a.result === 'pending').length;
+      const pon = (id, n) => { document.getElementById(id).textContent = (n === null ? '—' : n); };
+      pon('app-kpi-total', allApps.length);
+      pon('app-kpi-cc', appCC);
+      pon('app-kpi-sg', appSG);
+      pon('app-kpi-approved', appApproved);
+      pon('app-kpi-pending', appPending);
+      pon('app-kpi-denied', appDenied);
+      const ccCard = document.getElementById('app-kpi-cc').closest('.kpi-card');
+      const sgCard = document.getElementById('app-kpi-sg').closest('.kpi-card');
+      [ccCard, sgCard].forEach(c => { if (c) {
+        c.style.opacity = usaPlat ? '.5' : '';
+        c.title = usaPlat ? 'La plataforma de aplicaciones no registra este dato' : '';
+      }});
       const ownerAppTally = {};
       allApps.forEach(a => {
-        const c = appOwnerName(a);
+        const c = usaPlat ? a.vendedor : appOwnerName(a);
         if (!c || c.toLowerCase() === 'n/a') return;
         ownerAppTally[c] = (ownerAppTally[c] || 0) + 1;
       });
@@ -4437,6 +4455,7 @@
     // conteo manual, que decia 0 todos esos dias.
     const APPS_DESDE = '2026-08-08';
     window._appsPlataforma = null;
+    window._appsDetalle = null;
     async function cargarAppsOnline(){
       try{
         const r = await fetch(`${SUPA_URL}/rest/v1/rpc/ar_oa_por_dia`,
@@ -4447,6 +4466,32 @@
         filas.forEach(f => { m[f.dia + '|' + f.tienda] = f.n; });
         window._appsPlataforma = m;
       }catch(e){ window._appsPlataforma = null; }
+      // Detalle (una fila por aplicación) para los cuadros de resultado y la lista.
+      try{
+        const r2 = await fetch(`${SUPA_URL}/rest/v1/rpc/ar_oa_resumen`,
+          { method:'POST', headers:{...SUPA_HEADERS,'Content-Type':'application/json'}, body:'{}' });
+        const d = await r2.json();
+        window._appsDetalle = Array.isArray(d) ? d : null;
+      }catch(e){ window._appsDetalle = null; }
+    }
+
+    /* Las aplicaciones de la plataforma que caen dentro del período y la locación
+       elegidos. null = para este período no hay nada de la plataforma, usar lo manual. */
+    function appsPlataformaDelPeriodo(){
+      const d = window._appsDetalle;
+      if (!d) return null;
+      const dentro = d.filter(a => {
+        if (String(a.dia) < APPS_DESDE) return false;
+        if (!inSelectedMonth(String(a.dia))) return false;
+        if (filterLocation !== 'all' && String(a.tienda || '').toLowerCase() !== filterLocation) return false;
+        return true;
+      });
+      // Si el período es anterior a la plataforma no hay nada que mostrar de ella.
+      return dentro.length || _periodoDentroDePlataforma() ? dentro : null;
+    }
+    function _periodoDentroDePlataforma(){
+      const hoy = new Date().toISOString().slice(0,10);
+      return inSelectedMonth(hoy) || inSelectedMonth(APPS_DESDE);
     }
     /* Cuantas aplicaciones ese dia en esa tienda. Desde que existe la plataforma manda
        ella; para dias anteriores, lo que se hubiera anotado a mano. */
@@ -4484,8 +4529,50 @@
       return out;
     }
 
+    /* Lista de las aplicaciones de la plataforma. Van de solo lectura a propósito: se
+       trabajan en su propia app, no aquí. El código abre la aplicación completa. */
+    function abrirAppsPlataforma(todas, filter) {
+      const cae = a => filter === 'all' ? true
+        : filter === 'approved' ? a.veredicto === 'aprobado'
+        : filter === 'denied'   ? a.veredicto === 'negado'
+        : filter === 'pending'  ? (!a.veredicto || a.veredicto === 'posible')
+        : false;
+      const rows = todas.filter(cae).sort((a, b) => String(b.dia).localeCompare(String(a.dia)));
+      const titles = { all: 'Todas las aplicaciones', approved: 'Aplicaciones aprobadas', pending: 'Aplicaciones pendientes', denied: 'Aplicaciones negadas', 'Call Center': 'Call Center', 'Self-gen': 'Self-gen' };
+      const pill = (txt, bg, fg) => `<span class="badge" style="background:${bg};color:${fg};">${txt}</span>`;
+      const badge = a => a.veredicto === 'aprobado' ? pill('Aprobada', '#d1fae5', '#065f46')
+        : a.veredicto === 'negado' ? pill('Negada', '#fee2e2', '#991b1b')
+        : a.veredicto === 'posible' ? pill('Con posibilidad', '#fef3c7', '#92400e')
+        : a.veredicto === 'historico' ? pill('Historial', '#e5e7eb', '#4b5563')
+        : pill('Sin revisar', '#e5e7eb', '#4b5563');
+      const mesCorto = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+      const rowsHtml = rows.length ? rows.map(a => {
+        const d = new Date(String(a.dia) + 'T00:00:00');
+        return `<div class="rd-row">
+          <div>
+            <div class="rd-name" style="font-weight:600;">${escapeHtml(a.vendedor || '—')}</div>
+            <div style="font-size:11px;color:var(--gray-400);">${d.getDate()} ${mesCorto[d.getMonth()]} · ${escapeHtml(a.tienda || '—')}${a.cliente ? ' · ' + escapeHtml(a.cliente) : ''}${a.codigo ? ' · ' + escapeHtml(a.codigo) : ''}</div>
+          </div>
+          <div></div>
+          <div style="text-align:right;">${badge(a)}</div>
+        </div>`;
+      }).join('') : '<div class="empty-state" style="padding:16px 0;">Sin aplicaciones en este período.</div>';
+      const html = `<div class="rd-overlay" onclick="if(event.target===this)this.remove()">
+        <div class="rd-modal">
+          <div class="rd-header">
+            <div><div class="rd-title">${titles[filter] || 'Aplicaciones'}</div>
+            <div class="rd-sub">${rows.length} en el período · vienen de la plataforma de aplicaciones online</div></div>
+            <button class="rd-close" onclick="this.closest('.rd-overlay').remove()">✕</button>
+          </div>
+          <div class="rd-body">${rowsHtml}</div>
+        </div></div>`;
+      document.body.insertAdjacentHTML('beforeend', html);
+    }
+
     // Lista de aplicaciones online — filter: 'all' | 'Call Center' | 'Self-gen' | 'approved' | 'pending' | 'denied'
     function openAppsDrawer(filter) {
+      const plat = appsPlataformaDelPeriodo();
+      if (plat) return abrirAppsPlataforma(plat, filter);
       const all = getAllOnlineAppsFlat();
       const isResult = ['approved', 'pending', 'denied'].includes(filter);
       const rows = filter === 'all' ? all : all.filter(a => isResult ? a.result === filter : a.scheduled_by === filter);
