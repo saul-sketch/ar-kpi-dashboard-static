@@ -1647,6 +1647,15 @@
               <button class="filter-tab" data-location="kissimmee">Kissimmee</button>
             </div>
           </div>
+          <div class="filter-group">
+            <span class="filter-label">Origen</span>
+            <div class="filter-tabs" id="source-filter">
+              <button class="filter-tab active" data-source="all">Todos</button>
+              <button class="filter-tab" data-source="Marketing">Marketing</button>
+              <button class="filter-tab" data-source="Facebook Marketplace">FB Marketplace</button>
+              <button class="filter-tab" data-source="Others">Otra</button>
+            </div>
+          </div>
           <div style="margin-left: auto;">
             <button class="filter-tab" onclick="refreshAllViews()" style="background: var(--primary); color: white;">↻ Refrescar</button>
           </div>
@@ -2492,6 +2501,7 @@
 
     // Filter state
     let filterLocation = 'all';
+    let filterSource = 'all';  // 'all' | 'Marketing' | 'Facebook Marketplace' | 'Others'
     let filterMonth = 'all'; // 'all' or 'YYYY-MM'
     let filterDateFrom = null; // ISO 'YYYY-MM-DD' — sub-range within filterMonth
     let filterDateTo = null;   // ISO 'YYYY-MM-DD'
@@ -2514,6 +2524,31 @@
       });
     });
 
+    document.querySelectorAll('#source-filter .filter-tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#source-filter .filter-tab').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        filterSource = btn.dataset.source;
+        renderMonthSidebar();
+        loadData();
+        if (typeof viewMode !== 'undefined' && viewMode === 'charts') loadCharts();
+      });
+    });
+
+    // Deja en cada reporte solo las visitas del origen elegido.
+    // OJO: se conserva la posición original de cada visita dentro de su reporte (_oidx),
+    // porque los botones de editar y eliminar apuntan a esa posición. Sin esto, al
+    // filtrar se editaría la visita equivocada.
+    function aplicarFiltroOrigen(reports) {
+      if (filterSource === 'all') return reports;
+      return reports.map(r => ({
+        ...r,
+        visits: (r.visits || [])
+          .map((v, i) => (v._oidx === undefined ? { ...v, _oidx: i } : v))
+          .filter(v => srcBucket(v) === filterSource)
+      }));
+    }
+
     function selectMonth(monthKey) {
       // Permiso de históricos: si OFF, solo el mes actual.
       if (!canHistory()) {
@@ -2535,9 +2570,9 @@
 
     function renderMonthSidebar() {
       // Count reflects current location filter — counts SALES (not report rows)
-      const reports = loadAllReports().filter(r =>
+      const reports = aplicarFiltroOrigen(loadAllReports().filter(r =>
         filterLocation === 'all' || (r.location || '').toLowerCase() === filterLocation
-      );
+      ));
 
       // Build year > quarter > month tree (counts = sales)
       const yearMap = {};
@@ -2845,11 +2880,11 @@
     let _lastFiltered = [];
     function loadData() {
       const all = loadAllReports();
-      const filtered = all.filter(r => {
+      const filtered = aplicarFiltroOrigen(all.filter(r => {
         const matchLoc = filterLocation === 'all' ? true : (r.location || '').toLowerCase() === filterLocation;
         const matchPeriod = inSelectedMonth(r.date);
         return matchLoc && matchPeriod;
-      });
+      }));
       _lastFiltered = filtered;
 
       // Aggregate
@@ -3244,11 +3279,11 @@
     // ============== DRILLDOWN DRAWER ==============
 
     function getFilteredReports() {
-      return loadAllReports().filter(r => {
+      return aplicarFiltroOrigen(loadAllReports().filter(r => {
         const matchLoc = filterLocation === 'all' ? true : (r.location || '').toLowerCase() === filterLocation;
         const matchPeriod = inSelectedMonth(r.date);
         return matchLoc && matchPeriod;
-      });
+      }));
     }
 
     function getAllVisitsFlat() {
@@ -3258,7 +3293,7 @@
           _date: r.date,
           _location: r.location || '—',
           _submitted_by: r.submitted_by || '—',
-          _idx: i
+          _idx: (v._oidx !== undefined ? v._oidx : i)
         }))
       );
     }
@@ -5028,11 +5063,11 @@
 
     function getFilteredReports() {
       // Same as KPIs view filter
-      return loadAllReports().filter(r => {
+      return aplicarFiltroOrigen(loadAllReports().filter(r => {
         const matchLoc = filterLocation === 'all' ? true : (r.location || '').toLowerCase() === filterLocation;
         const matchPeriod = inSelectedMonth(r.date);
         return matchLoc && matchPeriod;
-      });
+      }));
     }
 
     // ----- Master loader -----
