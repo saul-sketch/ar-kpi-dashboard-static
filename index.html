@@ -4430,7 +4430,12 @@
        los vendedores las llenan (ar-app). El conteo manual decia 0 TODOS los dias
        mientras la plataforma tenia 34 reales — los managers no las estaban metiendo.
        Solo trae dia, tienda y cuantas: ningun dato de cliente. */
-    const APPS_DESDE = '2026-08-25';   // antes de esa fecha la plataforma no existia
+    // Primer dia con aplicaciones cargadas. Estaba en el 25 de agosto, que es cuando
+    // los vendedores empezaron a usar la plataforma; el 2 de septiembre se cargaron las
+    // 46 del formulario viejo del call center, que arrancan el 8 de agosto. Sin mover
+    // esta fecha, esas 41 de los dias 8 al 24 seguian sin verse: el tablero caia al
+    // conteo manual, que decia 0 todos esos dias.
+    const APPS_DESDE = '2026-08-08';
     window._appsPlataforma = null;
     async function cargarAppsOnline(){
       try{
