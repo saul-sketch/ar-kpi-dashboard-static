@@ -1776,27 +1776,27 @@
         <div class="mix-block">
           <div class="mix-block-title">Origen del lead</div>
           <div class="mix-tile-grid">
-            <div class="mix-tile" style="--accent:var(--blue);">
+            <button class="mix-tile clickable" style="--accent:var(--blue);" onclick="openSourceDrawer('Marketing')">
               <div class="mix-tile-text">
                 <div class="mix-tile-label">Marketing</div>
                 <div class="mix-tile-detail" id="sm-mkt-detail">— apl · — vta</div>
               </div>
               <div class="mix-tile-value" id="sm-mkt" style="color:var(--blue);">0</div>
-            </div>
-            <div class="mix-tile" style="--accent:#1877f2;">
+            </button>
+            <button class="mix-tile clickable" style="--accent:#1877f2;" onclick="openSourceDrawer('Facebook Marketplace')">
               <div class="mix-tile-text">
                 <div class="mix-tile-label">Facebook Marketplace</div>
                 <div class="mix-tile-detail" id="sm-fb-detail">— apl · — vta</div>
               </div>
               <div class="mix-tile-value" id="sm-fb" style="color:#1877f2;">0</div>
-            </div>
-            <div class="mix-tile" style="--accent:var(--gray-500);">
+            </button>
+            <button class="mix-tile clickable" style="--accent:var(--gray-500);" onclick="openSourceDrawer('Others')">
               <div class="mix-tile-text">
                 <div class="mix-tile-label">Otra</div>
                 <div class="mix-tile-detail" id="sm-other-detail">— apl · — vta</div>
               </div>
               <div class="mix-tile-value" id="sm-other" style="color:var(--gray-700);">0</div>
-            </div>
+            </button>
           </div>
         </div>
 
@@ -3013,7 +3013,7 @@
       // Mix de origen (Source) — % apl y % cerraron por canal
       const srcStats = { 'Marketing': {v:0,a:0,s:0}, 'Facebook Marketplace': {v:0,a:0,s:0}, 'Others': {v:0,a:0,s:0} };
       filtered.forEach(r => r.visits.forEach(v => {
-        const src = (v.source === 'Marketing' || v.source === 'Facebook Marketplace') ? v.source : (v.source ? 'Others' : null);
+        const src = srcBucket(v);
         if (!src) return;
         srcStats[src].v++;
         if (v.applied === true) srcStats[src].a++;
@@ -3343,6 +3343,21 @@
       openDrawer('all', visits, `Visitas — ${value}`);
     }
 
+    // A qué origen pertenece una visita. Vive en un solo lugar para que el número de
+    // la tile y la lista que abre al hacer click nunca puedan decir cosas distintas.
+    // Sin origen anotado = null: no entra en ninguno de los tres.
+    function srcBucket(v) {
+      if (v.source === 'Marketing' || v.source === 'Facebook Marketplace') return v.source;
+      return v.source ? 'Others' : null;
+    }
+    const SRC_COLOR = { 'Marketing': 'var(--blue)', 'Facebook Marketplace': '#1877f2', 'Others': 'var(--gray-500)' };
+    const SRC_LABEL = { 'Marketing': 'MARKETING', 'Facebook Marketplace': 'FB MARKETPLACE', 'Others': 'OTRA' };
+
+    function openSourceDrawer(value) {
+      const visits = getAllVisitsFlat().filter(v => srcBucket(v) === value);
+      openDrawer('all', visits, `Visitas — Origen: ${value === 'Others' ? 'Otra' : value}`);
+    }
+
     function visitKey(v) {
       return `${v._date}_${(v._location || '').toLowerCase()}_${v._idx}`;
     }
@@ -3608,6 +3623,19 @@
         </div>
       `;
 
+      // De dónde salió el lead: antes solo se leía abriendo la fila. Va como etiqueta al
+      // lado del tipo de venta porque son dos cosas distintas — "Self-gen" dice quién la
+      // agendó, esto dice de dónde vino el cliente.
+      const _sb = srcBucket(v);
+      const srcBadge = _sb
+        ? `<span style="font-size:9px; padding:2px 7px; border-radius:100px; margin-left:5px; vertical-align:middle; font-weight:700; background:${SRC_COLOR[_sb]}; color:white;">${SRC_LABEL[_sb]}</span>`
+        : '';
+      // El # de deal estaba solo dentro del detalle; en una lista de ventas es lo primero
+      // que se busca para cruzar con DealerCenter.
+      const dealTxt = (v.deal_number && String(v.deal_number).trim())
+        ? ` · <span style="font-weight:600; color:var(--gray-700);">#${escapeHtml(String(v.deal_number).trim())}</span>`
+        : '';
+
       const rightSide = v.sale === true
         ? `<span class="visit-mini-amount"${isCancelledSale(v) ? ' style="text-decoration:line-through; opacity:.55;"' : ''}>${fmtMoney(v.net_profit)}</span><span class="outcome-pill ${outcome}">${outcomeLabels[outcome]}</span>`
         : `<span class="outcome-pill ${outcome}">${outcomeLabels[outcome]}</span>`;
@@ -3616,10 +3644,10 @@
         <div class="visit-mini ${expanded ? 'expanded' : ''}" onclick="toggleVisitExpand('${key}')">
           <div class="visit-mini-header">
             <div style="flex:1; min-width:0;">
-              <div class="visit-mini-name">${escapeHtml(v.name || '—')}${v.phone && v.phone.trim() ? ` <span style="font-weight:500; color:var(--gray-500); font-size:13px;">· ${escapeHtml(v.phone)}</span>` : ''} ${v.sale === true ? `<span style="font-size:9px; padding:2px 7px; border-radius:100px; margin-left:6px; vertical-align: middle; font-weight:700; background:${v.subgen === true ? 'var(--green)' : 'var(--gray-200)'}; color:${v.subgen === true ? 'white' : 'var(--gray-700)'};">${saleType(v).toUpperCase()}</span>` : ''}</div>
+              <div class="visit-mini-name">${escapeHtml(v.name || '—')}${v.phone && v.phone.trim() ? ` <span style="font-weight:500; color:var(--gray-500); font-size:13px;">· ${escapeHtml(v.phone)}</span>` : ''} ${v.sale === true ? `<span style="font-size:9px; padding:2px 7px; border-radius:100px; margin-left:6px; vertical-align: middle; font-weight:700; background:${v.subgen === true ? 'var(--green)' : 'var(--gray-200)'}; color:${v.subgen === true ? 'white' : 'var(--gray-700)'};">${saleType(v).toUpperCase()}</span>` : ''}${srcBadge}</div>
               <div class="visit-mini-meta">
                 <span class="visit-mini-loc"><span class="dot ${loc}"></span>${escapeHtml(v._location)}</span>
-                · ${dateShort} · ${escapeHtml(v.source || '—')} · Closer ${escapeHtml(v.closer || '—')}
+                · ${dateShort}${dealTxt} · Closer ${escapeHtml(v.closer || '—')}
               </div>
             </div>
             <div class="visit-mini-right">${rightSide}</div>
