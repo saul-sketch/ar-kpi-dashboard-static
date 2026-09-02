@@ -1,8 +1,22 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+  <script>
+  /* Auto-refresco: fuerza traer la versión más nueva. Railway no manda instrucción de
+     caché, así que el navegador se queda con la copia vieja y los cambios "no salen".
+     Loop-safe por timestamp: solo se recarga si el sello tiene más de 30 s. */
+  (function(){try{
+    var u=new URL(location.href);
+    var t=parseInt(u.searchParams.get('_')||'0',36);
+    if(!t || (Date.now()-t)>30000){
+      u.searchParams.set('_', Date.now().toString(36));
+      location.replace(u.toString());
+    }
+  }catch(e){}})();
+  </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <title>Dashboard - KPIs de Ventas - Management</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
