@@ -1665,7 +1665,8 @@
             <span class="filter-label">Origen</span>
             <div class="filter-tabs" id="source-filter">
               <button class="filter-tab active" data-source="all">Todos</button>
-              <button class="filter-tab" data-source="Marketing">Marketing</button>
+              <button class="filter-tab" data-source="Marketing">AR Marketing</button>
+              <button class="filter-tab" data-source="Ads personales">Ads personales</button>
               <button class="filter-tab" data-source="Facebook Marketplace">FB Marketplace</button>
               <button class="filter-tab" data-source="Others">Otra</button>
             </div>
@@ -1801,10 +1802,17 @@
           <div class="mix-tile-grid">
             <button class="mix-tile clickable" style="--accent:var(--blue);" onclick="openSourceDrawer('Marketing')">
               <div class="mix-tile-text">
-                <div class="mix-tile-label">Marketing</div>
+                <div class="mix-tile-label">AR Marketing</div>
                 <div class="mix-tile-detail" id="sm-mkt-detail">— apl · — vta</div>
               </div>
               <div class="mix-tile-value" id="sm-mkt" style="color:var(--blue);">0</div>
+            </button>
+            <button class="mix-tile clickable" style="--accent:var(--purple);" onclick="openSourceDrawer('Ads personales')">
+              <div class="mix-tile-text">
+                <div class="mix-tile-label">Ads personales</div>
+                <div class="mix-tile-detail" id="sm-per-detail">— apl · — vta</div>
+              </div>
+              <div class="mix-tile-value" id="sm-per" style="color:var(--purple);">0</div>
             </button>
             <button class="mix-tile clickable" style="--accent:#1877f2;" onclick="openSourceDrawer('Facebook Marketplace')">
               <div class="mix-tile-text">
@@ -2515,7 +2523,7 @@
 
     // Filter state
     let filterLocation = 'all';
-    let filterSource = 'all';  // 'all' | 'Marketing' | 'Facebook Marketplace' | 'Others'
+    let filterSource = 'all';  // 'all' | uno de SRC_ORDEN
     let filterMonth = 'all'; // 'all' or 'YYYY-MM'
     let filterDateFrom = null; // ISO 'YYYY-MM-DD' — sub-range within filterMonth
     let filterDateTo = null;   // ISO 'YYYY-MM-DD'
@@ -3078,7 +3086,7 @@
         : 'sin data nueva';
 
       // Mix de origen (Source) — % apl y % cerraron por canal
-      const srcStats = { 'Marketing': {v:0,a:0,s:0}, 'Facebook Marketplace': {v:0,a:0,s:0}, 'Others': {v:0,a:0,s:0} };
+      const srcStats = {}; SRC_ORDEN.forEach(k => srcStats[k] = {v:0,a:0,s:0});
       filtered.forEach(r => r.visits.forEach(v => {
         const src = srcBucket(v);
         if (!src) return;
@@ -3093,6 +3101,7 @@
           : '— apl · — venta';
       };
       setSrc('mkt', srcStats['Marketing']);
+      setSrc('per', srcStats['Ads personales']);
       setSrc('fb', srcStats['Facebook Marketplace']);
       setSrc('other', srcStats['Others']);
 
@@ -3410,19 +3419,29 @@
       openDrawer('all', visits, `Visitas — ${value}`);
     }
 
-    // A qué origen pertenece una visita. Vive en un solo lugar para que el número de
-    // la tile y la lista que abre al hacer click nunca puedan decir cosas distintas.
-    // Sin origen anotado = null: no entra en ninguno de los tres.
+    /* Los orígenes, definidos UNA vez. El valor guardado no cambia nunca; lo que
+       cambia es cómo se lee. "Marketing" se guarda igual que siempre y se muestra
+       "AR Marketing": todo lo anterior a septiembre 2026 ERA marketing pagado por la
+       empresa, así que la etiqueta es exacta también hacia atrás, y no hubo que
+       reescribir los 1.189 reportes de ventas para renombrar una palabra.
+       "Ads personales" son los que corre la empresa pero paga el vendedor de su
+       bolsillo: es marketing igual, pero no es gasto de AR, y mezclarlos escondía
+       cuánto de las ventas de alguien salía de su propia plata. */
+    const SRC_ORDEN = ['Marketing', 'Ads personales', 'Facebook Marketplace', 'Others'];
+    const SRC_TITULO = { 'Marketing': 'AR Marketing', 'Ads personales': 'Ads personales',
+                         'Facebook Marketplace': 'Facebook Marketplace', 'Others': 'Otra' };
+    const SRC_COLOR = { 'Marketing': 'var(--blue)', 'Ads personales': 'var(--purple)',
+                        'Facebook Marketplace': '#1877f2', 'Others': 'var(--gray-500)' };
+    const SRC_LABEL = { 'Marketing': 'AR MARKETING', 'Ads personales': 'ADS PERSONALES',
+                        'Facebook Marketplace': 'FB MARKETPLACE', 'Others': 'OTRA' };
     function srcBucket(v) {
-      if (v.source === 'Marketing' || v.source === 'Facebook Marketplace') return v.source;
+      if (SRC_ORDEN.includes(v.source) && v.source !== 'Others') return v.source;
       return v.source ? 'Others' : null;
     }
-    const SRC_COLOR = { 'Marketing': 'var(--blue)', 'Facebook Marketplace': '#1877f2', 'Others': 'var(--gray-500)' };
-    const SRC_LABEL = { 'Marketing': 'MARKETING', 'Facebook Marketplace': 'FB MARKETPLACE', 'Others': 'OTRA' };
 
     function openSourceDrawer(value) {
       const visits = getAllVisitsFlat().filter(v => srcBucket(v) === value);
-      openDrawer('all', visits, `Visitas — Origen: ${value === 'Others' ? 'Otra' : value}`);
+      openDrawer('all', visits, `Visitas — Origen: ${SRC_TITULO[value] || value}`);
     }
 
     function visitKey(v) {
@@ -3970,7 +3989,7 @@
       // contradictory records (sale=true but Aplicó=No) — persists on save.
       if (v.sale === true) { v.applied = true; v.result = 'approved'; }
       const lenderOpts = ['','CapitalOne','Carvant Financial LLC','Exeter Finance','Global Lending Services','Lendbuzz Funding LLC','Lobel Financial','OneMain Financial Group LLC','Strike Acceptance','Veros Credit LLC','Western Funding','Westlake Financial','Cash'];
-      const sources = ['','Marketing','Facebook Marketplace','Others'];
+      const sources = [''].concat(SRC_ORDEN);
 
       const isWalkIn = v.scheduled_by === 'Walk-in';
       // Applied visits always show contact inputs — an application implies we have the data
@@ -4031,7 +4050,7 @@
             <div class="edit-field">
               <label>Source</label>
               <select id="edit-source">
-                ${sources.map(s => `<option value="${s}" ${v.source === s ? 'selected' : ''}>${s || 'Seleccionar...'}</option>`).join('')}
+                ${sources.map(s => `<option value="${s}" ${v.source === s ? 'selected' : ''}>${s ? (SRC_TITULO[s] || s) : 'Seleccionar...'}</option>`).join('')}
               </select>
             </div>
             <div class="edit-field">
@@ -5547,18 +5566,19 @@
 
     function renderSourceDonut(sales) {
       if (!sales.length) return renderEmpty('chart-source-donut');
-      const counts = { 'Marketing': 0, 'Facebook Marketplace': 0, 'Others': 0, 'Sin data': 0 };
+      const counts = {}; SRC_ORDEN.forEach(k => counts[SRC_TITULO[k]] = 0); counts['Sin data'] = 0;
       sales.forEach(v => {
-        if (v.source === 'Marketing') counts['Marketing']++;
-        else if (v.source === 'Facebook Marketplace') counts['Facebook Marketplace']++;
-        else if (v.source === 'Others') counts['Others']++;
-        else counts['Sin data']++;
+        const b = srcBucket(v);
+        if (b) counts[SRC_TITULO[b]]++; else counts['Sin data']++;
       });
       const labels = Object.keys(counts).filter(k => counts[k] > 0);
       const series = labels.map(k => counts[k]);
       mountChart('chart-source-donut', {
         chart: { type: 'donut', height: 300, fontFamily: 'inherit',
-          events: chartEvents((i, s) => { const lab = labels[s]; drillTo(_drillBase().filter(v => { if (!isActiveSale(v)) return false; if (lab === 'Sin data') return !['Marketing','Facebook Marketplace','Others'].includes(v.source); return v.source === lab; }), 'sold', 'Origen: ' + lab); }) },
+          events: chartEvents((i, s) => { const lab = labels[s];
+            drillTo(_drillBase().filter(v => { if (!isActiveSale(v)) return false;
+              const b = srcBucket(v);
+              return lab === 'Sin data' ? !b : (b && SRC_TITULO[b] === lab); }), 'sold', 'Origen: ' + lab); }) },
         series, labels,
         colors: ['#3b82f6','#1877f2','#94a3b8','#e5e7eb'],
         legend: { position: 'bottom' },
