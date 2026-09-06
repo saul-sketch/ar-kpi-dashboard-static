@@ -2353,7 +2353,7 @@
         if (Array.isArray(da) && da.length) { name = da[0].name; active = da[0].active !== false; }
         else {
           // 2) Fallback a app_users (usuarios viejos), y checa 'activo' en dashboard_access
-          const au = await (await fetch(`${SUPA_URL}/rest/v1/app_users?password=eq.${enc}&select=name,location_access`, { headers: SUPA_HEADERS })).json();
+          const au = await (await fetch(`${SUPA_URL}/rest/v1/rpc/ar_entrar`, { method:'POST', headers:{...SUPA_HEADERS,'Content-Type':'application/json'}, body: JSON.stringify({ p_clave: enc }) })).json();
           if (Array.isArray(au) && au.length) {
             name = au[0].name; loc = au[0].location_access || 'all';
             const chk = await (await fetch(`${SUPA_URL}/rest/v1/dashboard_access?ukey=eq.ventas:${encodeURIComponent((name||'').toLowerCase())}&select=active`, { headers: SUPA_HEADERS })).json();
@@ -2505,17 +2505,17 @@
     async function changePassword() {
       const current = prompt('Contraseña actual:');
       if (!current) return;
-      const r1 = await fetch(`${SUPA_URL}/rest/v1/app_users?name=eq.${encodeURIComponent(currentUser)}&password=eq.${encodeURIComponent(current)}&select=name`, { headers: SUPA_HEADERS });
+      const r1 = await fetch(`${SUPA_URL}/rest/v1/rpc/ar_entrar`, { method:'POST', headers:{...SUPA_HEADERS,'Content-Type':'application/json'}, body: JSON.stringify({ p_clave: current, p_nombre: currentUser }) });
       const d1 = await r1.json();
       if (!d1 || d1.length === 0) { alert('Contraseña actual incorrecta'); return; }
       const newPwd = prompt('Nueva contraseña (mínimo 4 caracteres):');
       if (!newPwd || newPwd.length < 4) { alert('Debe tener mínimo 4 caracteres'); return; }
       const confirm2 = prompt('Confirma nueva contraseña:');
       if (newPwd !== confirm2) { alert('No coinciden'); return; }
-      const r2 = await fetch(`${SUPA_URL}/rest/v1/app_users?name=eq.${encodeURIComponent(currentUser)}`, {
-        method: 'PATCH',
-        headers: { ...SUPA_HEADERS, Prefer: 'return=minimal' },
-        body: JSON.stringify({ password: newPwd, updated_at: new Date().toISOString() })
+      const r2 = await fetch(`${SUPA_URL}/rest/v1/rpc/ar_cambiar_clave`, {
+        method: 'POST',
+        headers: { ...SUPA_HEADERS, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ p_nombre: currentUser, p_actual: current, p_nueva: newPwd })
       });
       if (r2.ok) alert('Contraseña actualizada');
       else alert('Error: ' + await r2.text());
@@ -6131,7 +6131,7 @@
           if (Array.isArray(chk) && chk.length && chk[0].active === false) {
             localStorage.removeItem('ar_dash_user');
           } else {
-            const res = await fetch(`${SUPA_URL}/rest/v1/app_users?name=eq.${encodeURIComponent(savedUser)}&select=name,location_access`, { headers: SUPA_HEADERS });
+            const res = await fetch(`${SUPA_URL}/rest/v1/rpc/ar_acceso_de`, { method:'POST', body: JSON.stringify({ p_nombre: savedUser }), headers:{...SUPA_HEADERS,'Content-Type':'application/json'} });
             const data = await res.json();
             if (data && data.length > 0) {
               currentUser = data[0].name;
