@@ -1544,6 +1544,53 @@
     .btn-google:disabled { opacity: 0.6; cursor: default; }
     .btn-google svg { width: 18px; height: 18px; flex: 0 0 auto; }
 
+    /* Listas desplegables propias (reemplazan el menú nativo) */
+    .ard { position: relative; display: inline-block; vertical-align: middle; max-width: 100%; }
+    .edit-field .ard, #add-day-overlay .ard { display: block; width: 100%; }
+    .ard-native { position: absolute !important; inset: 0; width: 100% !important; height: 100% !important; opacity: 0 !important; pointer-events: none !important; }
+    .ard-btn { display: flex; align-items: center; gap: 8px; width: 100%; padding: 9px 11px; border: 1.5px solid var(--gray-200); border-radius: 8px; font-size: 13px; font-family: inherit; background: var(--gray-100); color: var(--gray-900); cursor: pointer; text-align: left; line-height: 1.25; -webkit-tap-highlight-color: transparent; }
+    .ard-btn .ard-label { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ard-btn svg { flex: 0 0 auto; width: 14px; height: 14px; color: var(--gray-500); transition: transform 0.15s; }
+    .ard-btn:hover { border-color: var(--gray-300); }
+    .ard-btn:focus-visible, .ard-btn.open { outline: none; border-color: var(--blue); background: white; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+    .ard-btn.open svg { transform: rotate(180deg); }
+    .ard-btn.ard-placeholder .ard-label { color: var(--gray-400); }
+    .ard-btn.field-error { border-color: var(--red) !important; background: #fef2f2 !important; }
+    .ard-btn:disabled { opacity: 0.5; cursor: default; }
+    .ard-btn.ard-sm { padding: 4px 8px; font-size: 12px; border-width: 1px; border-color: #e2e8f0; border-radius: 6px; background: white; gap: 6px; }
+    .ard-btn.ard-sm svg { width: 12px; height: 12px; }
+    .ard-list { position: fixed; z-index: 5000; background: white; border: 1px solid var(--gray-200); border-radius: 10px; box-shadow: 0 12px 32px rgba(15,23,42,0.18); padding: 4px; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+    .ard-opt { padding: 8px 12px; border-radius: 7px; font-size: 13px; color: var(--gray-700); cursor: pointer; line-height: 1.3; }
+    .ard-opt:hover, .ard-opt.hl { background: var(--gray-100); }
+    .ard-opt.ard-empty { color: var(--gray-400); }
+    .ard-opt.sel { background: var(--primary); color: white; font-weight: 600; }
+    .ard-opt.dis { opacity: 0.4; cursor: default; }
+    /* Fechas: mismo estilo de la app (sin el cromo del navegador) */
+    input[type="date"] { -webkit-appearance: none; appearance: none; font-family: inherit; color: var(--gray-900); }
+    input[type="date"]::-webkit-calendar-picker-indicator { cursor: pointer; opacity: 0.55; }
+    input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 0.9; }
+    input[type="date"]::-webkit-date-and-time-value { text-align: left; }
+    /* Etiqueta de estado de una aplicación online (Aprobada / Negada / Con posibilidad) */
+    .badge { display: inline-block; padding: 3px 9px; border-radius: 100px; font-size: 11px; font-weight: 700; white-space: nowrap; line-height: 1.4; }
+    /* Casillas (Settings): estilo de la app en vez de la casilla nativa */
+    .sa-table input[type="checkbox"], .edit-modal input[type="checkbox"] { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; min-height: 0 !important; padding: 0 !important; flex: 0 0 auto; margin: 0; border: 1.5px solid var(--gray-300); border-radius: 6px; background: white; display: inline-grid; place-content: center; cursor: pointer; vertical-align: middle; transition: background 0.15s, border-color 0.15s; }
+    .sa-table input[type="checkbox"]:checked, .edit-modal input[type="checkbox"]:checked { background: var(--primary); border-color: var(--primary); }
+    .sa-table input[type="checkbox"]:checked::after, .edit-modal input[type="checkbox"]:checked::after { content: ''; width: 5px; height: 10px; border: solid white; border-width: 0 2.5px 2.5px 0; transform: translate(0, -1px) rotate(45deg); }
+    .sa-table input[type="checkbox"]:focus-visible, .edit-modal input[type="checkbox"]:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(59,130,246,0.2); }
+    /* Modal: cambiar contraseña */
+    .pwd-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.55); backdrop-filter: blur(4px); z-index: 3100; align-items: center; justify-content: center; padding: 20px; }
+    .pwd-modal { background: white; border-radius: 16px; width: 400px; max-width: 100%; padding: 20px 22px; box-shadow: 0 25px 70px rgba(0,0,0,0.3); }
+    .pwd-modal form { display: flex; flex-direction: column; gap: 12px; }
+    .pwd-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 14px; }
+    .pwd-head h3 { font-size: 17px; font-weight: 700; color: var(--gray-900); }
+    .pwd-head p { font-size: 12px; color: var(--gray-500); margin-top: 2px; }
+    .pwd-close { background: var(--gray-100); border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 18px; color: var(--gray-700); flex-shrink: 0; }
+    .pwd-close:hover { background: var(--gray-200); }
+    .pwd-msg { font-size: 13px; font-weight: 600; border-radius: 8px; padding: 9px 12px; }
+    .pwd-msg.err { color: #991b1b; background: #fef2f2; border: 1.5px solid #fecaca; }
+    .pwd-msg.ok { color: #065f46; background: #ecfdf5; border: 1.5px solid #a7f3d0; }
+    .pwd-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px; }
+
     /* ===== Mobile (iPhone) — solo afecta pantallas ≤767px o celular acostado; el escritorio queda igual ===== */
     @media (max-width: 767px), (hover: none) and (pointer: coarse) and (max-height: 500px) {
       body { padding: 10px; }
@@ -1721,7 +1768,7 @@
       .sa-table thead { display: none; }
       .sa-table, .sa-table tbody { display: block; }
       .sa-table tr.sa-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; padding: 12px 4px; position: relative; }
-      .sa-table tr.sa-row td { padding: 0 !important; border: none; text-align: left !important; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+      .sa-table tr.sa-row td { background: transparent !important; padding: 0 !important; border: none; text-align: left !important; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
       .sa-table tr.sa-row td:first-child { grid-column: 1 / -1; padding-right: 48px !important; font-size: 15px; }
       .sa-table tr.sa-row td[data-label]::before { content: attr(data-label); font-size: 11px; font-weight: 700; text-transform: uppercase; color: #64748b; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
       .sa-table tr.sa-row td[data-label] > span { align-self: flex-start; }
@@ -1729,6 +1776,28 @@
       .sa-table tr.sa-row input[type=checkbox] { width: 24px; height: 24px; margin: 8px 0; }
       .sa-table tr.sa-row td.sa-del { position: absolute; top: 6px; right: 0; }
       .sa-table tr.sa-row td.sa-del button { width: 44px; height: 44px; font-size: 18px !important; }
+
+      /* Listas propias, fechas y modal de contraseña en el celular */
+      .ard-btn { font-size: 16px; min-height: 44px; }
+      .ard-btn.ard-sm { font-size: 16px; min-height: 40px; padding: 6px 10px; }
+      .ard-opt { font-size: 15px; min-height: 44px; display: flex; align-items: center; }
+      .sa-table tr.sa-row .ard { width: 100%; }
+      input[type="date"] { font-size: 16px; min-height: 44px; }
+      .pwd-overlay { padding: 0; align-items: flex-end; }
+      .pwd-modal { width: 100%; border-radius: 16px 16px 0 0; padding: 16px; padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
+      .pwd-close { width: 40px; height: 40px; font-size: 22px; }
+      .pwd-actions > button { flex: 1 1 0; }
+      /* Textos chicos → mínimo 12px */
+      .rate-status, .status-pill, .outcome-pill, .badge, .rd-modal .badge { font-size: 12px; }
+      .rd-row.rd-head { font-size: 12px; }
+      .detail-row .lbl, .visit-mini-detail div.lbl { font-size: 12px !important; }
+      .visit-mini-name span[style*="font-size:9px"] { font-size: 12px !important; }
+      .daily-table tr[data-date] td::before { font-size: 12px !important; text-transform: none !important; letter-spacing: 0 !important; }
+      .sa-table tr.sa-row td[data-label]::before { font-size: 12px; }
+      .sa-table span[style*="font-size:11px"], .sa-table div[style*="font-size:11px"] { font-size: 12px !important; }
+      .rd-funnel-sub, .rd-funnel-lab { font-size: 12px; }
+      .rd-nums span[style*="font-size:10px"], .rd-modal div[style*="font-size:11px"], .rd-modal span[style*="font-size:11px"] { font-size: 12px !important; }
+      .edit-modal div[style*="font-size:11px"], .edit-modal span[style*="font-size:11px"] { font-size: 12px !important; }
       /* Login */
       .login-screen { margin: -10px; min-height: 100vh; min-height: 100dvh; padding: 16px; }
       .login-card { padding: 32px 22px 26px; }
@@ -2468,6 +2537,29 @@
     </div>
   </div>
 
+  <!-- Cambiar contraseña -->
+  <div id="pwd-overlay" class="pwd-overlay" style="display:none;" onclick="closePwdModal(event)">
+    <div class="pwd-modal" role="dialog" aria-labelledby="pwd-title">
+      <div class="pwd-head">
+        <div>
+          <h3 id="pwd-title">Cambiar contraseña</h3>
+          <p>Mínimo 4 caracteres.</p>
+        </div>
+        <button type="button" class="pwd-close" onclick="closePwdModal()" aria-label="Cerrar">&times;</button>
+      </div>
+      <form onsubmit="event.preventDefault(); submitChangePassword();" autocomplete="off">
+        <div class="edit-field"><label for="pwd-current">Contraseña actual</label><input type="password" id="pwd-current" autocomplete="current-password"></div>
+        <div class="edit-field"><label for="pwd-new">Nueva contraseña</label><input type="password" id="pwd-new" autocomplete="new-password"></div>
+        <div class="edit-field"><label for="pwd-confirm">Confirma nueva contraseña</label><input type="password" id="pwd-confirm" autocomplete="new-password"></div>
+        <div id="pwd-msg" class="pwd-msg" style="display:none;"></div>
+        <div class="pwd-actions">
+          <button type="button" class="btn-cancel" onclick="closePwdModal()">Cancelar</button>
+          <button type="submit" class="btn-save" id="pwd-save">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Manage Agents Modal (dashboard) -->
   <div id="dash-manage-agents-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:250; align-items:center; justify-content:center;" onclick="if(event.target.id==='dash-manage-agents-overlay') closeDashManageModal()">
     <div style="background:white; padding:24px; border-radius:14px; width:420px; max-width:90vw; max-height:80vh; overflow:auto;">
@@ -2728,23 +2820,44 @@
       document.getElementById('login-password').focus();
     }
 
-    async function changePassword() {
-      const current = prompt('Contraseña actual:');
-      if (!current) return;
-      const r1 = await fetch(`${SUPA_URL}/rest/v1/rpc/ar_entrar`, { method:'POST', headers:{...SUPA_HEADERS,'Content-Type':'application/json'}, body: JSON.stringify({ p_clave: current, p_nombre: currentUser }) });
-      const d1 = await r1.json();
-      if (!d1 || d1.length === 0) { alert('Contraseña actual incorrecta'); return; }
-      const newPwd = prompt('Nueva contraseña (mínimo 4 caracteres):');
-      if (!newPwd || newPwd.length < 4) { alert('Debe tener mínimo 4 caracteres'); return; }
-      const confirm2 = prompt('Confirma nueva contraseña:');
-      if (newPwd !== confirm2) { alert('No coinciden'); return; }
-      const r2 = await fetch(`${SUPA_URL}/rest/v1/rpc/ar_cambiar_clave`, {
-        method: 'POST',
-        headers: { ...SUPA_HEADERS, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ p_nombre: currentUser, p_actual: current, p_nueva: newPwd })
-      });
-      if (r2.ok) alert('Contraseña actualizada');
-      else alert('Error: ' + await r2.text());
+    // Cambiar contraseña — modal propio (antes eran 3 ventanitas del navegador). Misma lógica y validaciones.
+    function changePassword() {
+      const ov = document.getElementById('pwd-overlay'); if (!ov) return;
+      ['pwd-current', 'pwd-new', 'pwd-confirm'].forEach(id => { document.getElementById(id).value = ''; });
+      pwdMsg('', '');
+      const b = document.getElementById('pwd-save'); b.disabled = false; b.textContent = 'Guardar';
+      ov.style.display = 'flex';
+      setTimeout(() => { try { document.getElementById('pwd-current').focus(); } catch (e) {} }, 50);
+    }
+    function closePwdModal(e) {
+      if (e && e.target && e.target.id !== 'pwd-overlay') return;
+      const ov = document.getElementById('pwd-overlay'); if (ov) ov.style.display = 'none';
+    }
+    function pwdMsg(text, kind) {
+      const el = document.getElementById('pwd-msg'); if (!el) return;
+      el.textContent = text; el.className = 'pwd-msg' + (kind ? ' ' + kind : ''); el.style.display = text ? 'block' : 'none';
+    }
+    async function submitChangePassword() {
+      const current = document.getElementById('pwd-current').value;
+      const newPwd = document.getElementById('pwd-new').value;
+      const confirm2 = document.getElementById('pwd-confirm').value;
+      if (!current) { pwdMsg('Escribe tu contraseña actual', 'err'); return; }
+      if (!newPwd || newPwd.length < 4) { pwdMsg('Debe tener mínimo 4 caracteres', 'err'); return; }
+      if (newPwd !== confirm2) { pwdMsg('No coinciden', 'err'); return; }
+      const b = document.getElementById('pwd-save'); b.disabled = true; b.textContent = 'Guardando…';
+      try {
+        const r1 = await fetch(`${SUPA_URL}/rest/v1/rpc/ar_entrar`, { method:'POST', headers:{...SUPA_HEADERS,'Content-Type':'application/json'}, body: JSON.stringify({ p_clave: current, p_nombre: currentUser }) });
+        const d1 = await r1.json();
+        if (!d1 || d1.length === 0) { pwdMsg('Contraseña actual incorrecta', 'err'); return; }
+        const r2 = await fetch(`${SUPA_URL}/rest/v1/rpc/ar_cambiar_clave`, {
+          method: 'POST',
+          headers: { ...SUPA_HEADERS, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ p_nombre: currentUser, p_actual: current, p_nueva: newPwd })
+        });
+        if (r2.ok) { pwdMsg('Contraseña actualizada ✓', 'ok'); setTimeout(() => closePwdModal(), 1300); }
+        else pwdMsg('Error: ' + await r2.text(), 'err');
+      } catch (e) { pwdMsg('Error: ' + (e.message || e), 'err'); }
+      finally { b.disabled = false; b.textContent = 'Guardar'; }
     }
 
     // Filter state
@@ -6619,6 +6732,136 @@
       await refreshReportsCache();
       loadData();
     }, 30000);
+  </script>
+  <script>
+  /* Listas desplegables propias (en lugar del menú nativo del navegador/iPhone).
+     El <select> original se queda escondido y sigue siendo la fuente del valor: el código
+     existente lo lee, lo cambia y escucha su "change" igual que antes. */
+  (function () {
+    var P = HTMLSelectElement.prototype;
+    var VAL = Object.getOwnPropertyDescriptor(P, 'value');
+    var IDX = Object.getOwnPropertyDescriptor(P, 'selectedIndex');
+    var CHEV = '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 7.5l5 5 5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    var cur = null; // { sel, list, hl }
+
+    function label(sel) { var o = sel.options[sel.selectedIndex]; return o ? o.textContent : ''; }
+    function sync(sel) {
+      var w = sel._ard; if (!w) return;
+      w.lbl.textContent = label(sel) || '—';
+      var cls = 'ard-btn' + (w.sm ? ' ard-sm' : '') + (sel.classList.contains('field-error') ? ' field-error' : '') + (cur && cur.sel === sel ? ' open' : '');
+      if (!sel.value) cls += ' ard-placeholder';
+      w.btn.className = cls;
+      w.btn.disabled = sel.disabled;
+    }
+    function close() {
+      if (!cur) return;
+      var c = cur; cur = null;
+      if (c.list.parentNode) c.list.parentNode.removeChild(c.list);
+      if (c.sel._ard) sync(c.sel);
+    }
+    function choose(sel, i) {
+      close();
+      if (sel.selectedIndex === i) return;
+      IDX.set.call(sel, i); sync(sel);
+      sel.dispatchEvent(new Event('input', { bubbles: true }));
+      sel.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    function highlight(i) {
+      if (!cur) return;
+      var items = cur.list.querySelectorAll('.ard-opt');
+      items.forEach(function (el) { el.classList.toggle('hl', +el.dataset.i === i); });
+      cur.hl = i;
+      var el = cur.list.querySelector('.ard-opt[data-i="' + i + '"]');
+      if (el && el.scrollIntoView) el.scrollIntoView({ block: 'nearest' });
+    }
+    function place(list, btn) {
+      var r = btn.getBoundingClientRect(), vw = window.innerWidth, vh = window.innerHeight;
+      var w = Math.min(Math.max(r.width, 200), vw - 16);
+      var left = Math.min(Math.max(8, r.left), vw - w - 8);
+      var below = vh - r.bottom - 8, above = r.top - 8;
+      var up = below < 240 && above > below;
+      var maxH = Math.max(140, Math.min(340, (up ? above : below) - 6));
+      list.style.width = w + 'px'; list.style.left = left + 'px'; list.style.maxHeight = maxH + 'px';
+      if (up) { list.style.top = ''; list.style.bottom = (vh - r.top + 4) + 'px'; }
+      else { list.style.bottom = ''; list.style.top = (r.bottom + 4) + 'px'; }
+    }
+    function open(sel) {
+      close();
+      var w = sel._ard, list = document.createElement('div');
+      list.className = 'ard-list'; list.setAttribute('role', 'listbox');
+      Array.prototype.forEach.call(sel.options, function (o, i) {
+        if (o.hidden) return;
+        var it = document.createElement('div');
+        it.className = 'ard-opt' + (i === sel.selectedIndex ? ' sel' : '') + (o.disabled ? ' dis' : '') + (o.value ? '' : ' ard-empty');
+        it.setAttribute('role', 'option'); it.dataset.i = i; it.textContent = o.textContent;
+        it.addEventListener('click', function (ev) { ev.stopPropagation(); if (!o.disabled) choose(sel, i); });
+        list.appendChild(it);
+      });
+      document.body.appendChild(list);
+      cur = { sel: sel, list: list, hl: sel.selectedIndex };
+      place(list, w.btn); sync(sel);
+      var s = list.querySelector('.ard-opt.sel');
+      if (s) list.scrollTop = Math.max(0, s.offsetTop - list.clientHeight / 2 + s.offsetHeight / 2);
+    }
+    function enhance(sel) {
+      if (sel._ard || sel.multiple || sel.hasAttribute('data-native')) return;
+      var wrap = document.createElement('div'); wrap.className = 'ard';
+      var btn = document.createElement('button'); btn.type = 'button'; btn.setAttribute('aria-haspopup', 'listbox');
+      var lbl = document.createElement('span'); lbl.className = 'ard-label';
+      btn.appendChild(lbl); btn.insertAdjacentHTML('beforeend', CHEV);
+      var st = sel.getAttribute('style') || '';
+      sel._ard = { wrap: wrap, btn: btn, lbl: lbl, sm: /font-size:\s*12px/.test(st) };
+      if (sel.id) btn.id = sel.id + '-ard';
+      sel.parentNode.insertBefore(wrap, sel);
+      wrap.appendChild(sel); wrap.appendChild(btn);
+      sel.classList.add('ard-native'); sel.tabIndex = -1; sel.setAttribute('aria-hidden', 'true');
+      Object.defineProperty(sel, 'value', { configurable: true, get: function () { return VAL.get.call(this); }, set: function (v) { VAL.set.call(this, v); sync(this); } });
+      Object.defineProperty(sel, 'selectedIndex', { configurable: true, get: function () { return IDX.get.call(this); }, set: function (v) { IDX.set.call(this, v); sync(this); } });
+      sel.addEventListener('change', function () { sync(sel); });
+      new MutationObserver(function () { sync(sel); }).observe(sel, { attributes: true, attributeFilter: ['class', 'disabled'], childList: true, subtree: true });
+      btn.addEventListener('click', function (e) { e.stopPropagation(); if (cur && cur.sel === sel) close(); else open(sel); });
+      btn.addEventListener('keydown', function (e) {
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+          e.preventDefault();
+          if (!cur || cur.sel !== sel) { open(sel); return; }
+          var n = sel.options.length, i = cur.hl, d = e.key === 'ArrowDown' ? 1 : -1;
+          for (var k = 0; k < n; k++) { i = (i + d + n) % n; if (!sel.options[i].disabled && !sel.options[i].hidden) break; }
+          highlight(i);
+        } else if (e.key === 'Enter' && cur && cur.sel === sel && cur.hl >= 0) { e.preventDefault(); choose(sel, cur.hl); }
+      });
+      sync(sel);
+    }
+    function scan(root) {
+      if (!root || root.nodeType !== 1) return;
+      if (root.tagName === 'SELECT') enhance(root);
+      else if (root.querySelectorAll) Array.prototype.forEach.call(root.querySelectorAll('select'), enhance);
+    }
+    document.addEventListener('pointerdown', function (e) {
+      if (!cur) return;
+      if (cur.list.contains(e.target) || cur.sel._ard.btn.contains(e.target)) return;
+      close();
+    }, true);
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape') return;
+      if (cur) { close(); return; }
+      var pw = document.getElementById('pwd-overlay');
+      if (pw && pw.style.display !== 'none') pw.style.display = 'none';
+    });
+    window.addEventListener('scroll', function (e) {
+      if (!cur) return;
+      var t = e.target;
+      if (!(t === document || t === document.documentElement || t === document.body || (t.contains && t.contains(cur.sel._ard.btn)))) return;
+      // Si el contenedor se mueve, la lista sigue al botón; si el botón sale de la pantalla, se cierra
+      var r = cur.sel._ard.btn.getBoundingClientRect();
+      if (r.bottom < 0 || r.top > window.innerHeight) close(); else place(cur.list, cur.sel._ard.btn);
+    }, true);
+    window.addEventListener('resize', function () { close(); });
+    new MutationObserver(function (muts) {
+      muts.forEach(function (m) { Array.prototype.forEach.call(m.addedNodes, scan); });
+      if (cur && !document.body.contains(cur.sel)) close();
+    }).observe(document.body, { childList: true, subtree: true });
+    scan(document.body);
+  })();
   </script>
 </body>
 </html>
