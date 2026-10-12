@@ -1577,6 +1577,13 @@
     .sa-table input[type="checkbox"]:checked, .edit-modal input[type="checkbox"]:checked { background: var(--primary); border-color: var(--primary); }
     .sa-table input[type="checkbox"]:checked::after, .edit-modal input[type="checkbox"]:checked::after { content: ''; width: 5px; height: 10px; border: solid white; border-width: 0 2.5px 2.5px 0; transform: translate(0, -1px) rotate(45deg); }
     .sa-table input[type="checkbox"]:focus-visible, .edit-modal input[type="checkbox"]:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(59,130,246,0.2); }
+    /* Confirmaciones y avisos propios */
+    .ar-dlg { z-index: 6000; }
+    .ar-dlg .pwd-head { margin-bottom: 8px; }
+    .ar-dlg-form { display: flex; flex-direction: column; gap: 14px; }
+    .ar-dlg-msg { font-size: 14px; line-height: 1.45; color: var(--gray-700); white-space: pre-line; }
+    .btn-danger { padding: 9px 18px; background: var(--red); color: white; border: none; border-radius: 9px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; }
+    .btn-danger:hover { background: #dc2626; }
     /* Modal: cambiar contraseña */
     .pwd-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.55); backdrop-filter: blur(4px); z-index: 3100; align-items: center; justify-content: center; padding: 20px; }
     .pwd-modal { background: white; border-radius: 16px; width: 400px; max-width: 100%; padding: 20px 22px; box-shadow: 0 25px 70px rgba(0,0,0,0.3); }
@@ -1787,6 +1794,9 @@
       .pwd-modal { width: 100%; border-radius: 16px 16px 0 0; padding: 16px; padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
       .pwd-close { width: 40px; height: 40px; font-size: 22px; }
       .pwd-actions > button { flex: 1 1 0; }
+      .btn-danger { min-height: 44px; font-size: 14px; }
+      .ar-dlg-input { font-size: 16px; min-height: 44px; }
+      .ar-dlg-msg { font-size: 15px; }
       /* Textos chicos → mínimo 12px */
       .rate-status, .status-pill, .outcome-pill, .badge, .rd-modal .badge { font-size: 12px; }
       .rd-row.rd-head { font-size: 12px; }
@@ -2740,7 +2750,7 @@
     }
     function saBadge(t) { const m = { user: ['Usuario + clave', '#3b82f6'], ghl: ['Desde el CRM', '#10b981'], link: ['Link directo', '#f59e0b'] }; const [l, c] = m[t] || ['—', '#94a3b8']; return `<span style="font-size:11px;font-weight:700;color:${c};background:${c}1a;padding:3px 8px;border-radius:6px;white-space:nowrap;">${l}</span>`; }
     async function saPatch(id, patch) { try { await fetch(`${SUPA_URL}/rest/v1/dashboard_access?id=eq.${id}`, { method: 'PATCH', headers: { ...SUPA_HEADERS, Prefer: 'return=minimal' }, body: JSON.stringify(patch) }); } catch (e) {} openSettings(); }
-    async function saDelete(id, name) { if (!confirm('¿Quitar acceso a ' + name + '?')) return; try { await fetch(`${SUPA_URL}/rest/v1/dashboard_access?id=eq.${id}`, { method: 'DELETE', headers: SUPA_HEADERS }); } catch (e) {} openSettings(); }
+    async function saDelete(id, name) { if (!(await arConfirm('¿Quitar acceso a ' + name + '?', { title: 'Quitar acceso', ok: 'Quitar acceso', danger: true }))) return; try { await fetch(`${SUPA_URL}/rest/v1/dashboard_access?id=eq.${id}`, { method: 'DELETE', headers: SUPA_HEADERS }); } catch (e) {} openSettings(); }
     async function saAddUser() {
       const name = document.getElementById('sa-name').value.trim(), email = document.getElementById('sa-email').value.trim(), pass = document.getElementById('sa-pass').value.trim();
       if (!name || !pass) { alert('Nombre y contraseña son obligatorios'); return; }
@@ -2805,8 +2815,8 @@
       });
     }
 
-    function logout() {
-      if (!confirm('¿Cerrar sesión?')) return;
+    async function logout() {
+      if (!(await arConfirm('¿Cerrar sesión?', { title: 'Cerrar sesión', ok: 'Cerrar sesión' }))) return;
       arGoogleSignOut();
       localStorage.removeItem('ar_dash_user');
       currentUser = null;
@@ -4649,7 +4659,7 @@
 
     async function deleteEditedVisit() {
       if (!editingVisit) return;
-      if (!confirm('¿Eliminar esta visita permanentemente?')) return;
+      if (!(await arConfirm('¿Eliminar esta visita permanentemente?', { title: 'Eliminar visita', ok: 'Eliminar', danger: true }))) return;
       try {
         const { date, location, idx } = editingVisit;
         await doDeleteVisit(date, location, idx);
@@ -4809,7 +4819,7 @@
 
     async function deleteEditedApp() {
       if (!editingApp) return;
-      if (!confirm('¿Eliminar esta aplicación permanentemente?')) return;
+      if (!(await arConfirm('¿Eliminar esta aplicación permanentemente?', { title: 'Eliminar aplicación', ok: 'Eliminar', danger: true }))) return;
       const { date, location, idx } = editingApp;
       const report = loadReport(date, location);
       if (!report) return;
@@ -4989,7 +4999,7 @@
 
     async function quickDeleteVisit(date, location, idx) {
       event.stopPropagation();
-      if (!confirm('¿Eliminar esta visita permanentemente?')) return;
+      if (!(await arConfirm('¿Eliminar esta visita permanentemente?', { title: 'Eliminar visita', ok: 'Eliminar', danger: true }))) return;
       try {
         await doDeleteVisit(date, location, idx);
         refreshAfterMutation();
@@ -5094,15 +5104,19 @@
 
     async function onDashAgentChange(selectEl, field) {
       const v = selectEl.value;
+      // Valor anterior, guardado antes de abrir el modal (mientras está abierto, el formulario puede capturar "__add__")
+      const prevKey = field === 'closer2' ? 'closer2' : field;
+      const prevVal = (editingVisit && editingVisit.current && !String(editingVisit.current[prevKey] || '').startsWith('__')) ? editingVisit.current[prevKey] : '';
       if (v === '__add__') {
         const role = selectEl.dataset.role;
         const loc = selectEl.dataset.location;
         const promptMsg = role === 'closer'
           ? `Nuevo ${field === 'closer2' ? 'Closer #2' : 'Closer'} para ${loc}:`
           : 'Nuevo Setter (compartido entre ambas locaciones):';
-        const name = prompt(promptMsg);
+        const name = await arPrompt(promptMsg, { title: role === 'closer' ? 'Agregar closer' : 'Agregar setter', ok: 'Agregar', placeholder: 'Nombre' });
         if (!name || !name.trim()) {
-          selectEl.value = editingVisit.current[field === 'closer2' ? 'closer2' : field] || '';
+          selectEl.value = prevVal || '';
+          if (editingVisit && editingVisit.current) editingVisit.current[prevKey] = prevVal || '';
           return;
         }
         const added = await addAgentFromDashboard(role, loc, name.trim());
@@ -5147,7 +5161,7 @@
     }
 
     async function confirmDashDeleteAgent(id, name, role, location) {
-      if (!confirm(`¿Eliminar "${name}" del dropdown?\n\nLos reportes históricos donde aparece su nombre NO se modifican — solo deja de aparecer en futuras selecciones.`)) return;
+      if (!(await arConfirm(`¿Eliminar "${name}" del dropdown?\n\nLos reportes históricos donde aparece su nombre NO se modifican — solo deja de aparecer en futuras selecciones.`, { title: 'Eliminar del dropdown', ok: 'Eliminar', danger: true }))) return;
       const ok = await deleteAgentByIdDashboard(id);
       if (ok) {
         // Re-render edit form (will rebuild dropdowns with new list)
@@ -5258,7 +5272,7 @@
           await patchReportDate(report.id, newDate);
         } else {
           // Target date already has a report for this location → swap dates (no data lost)
-          if (!confirm(`El ${formatDateShort(newDate)} ya tiene un reporte en ${location}.\n\n¿Intercambiar las fechas de los dos reportes? Ninguno se borra — solo se cambian de día.`)) return;
+          if (!(await arConfirm(`El ${formatDateShort(newDate)} ya tiene un reporte en ${location}.\n\n¿Intercambiar las fechas de los dos reportes? Ninguno se borra — solo se cambian de día.`, { title: 'Intercambiar fechas', ok: 'Intercambiar' }))) return;
           const TEMP = '1970-01-01';
           await patchReportDate(report.id, TEMP);    // free oldDate
           await patchReportDate(target.id, oldDate); // target → oldDate
@@ -6390,7 +6404,7 @@
     }
 
     async function seedFull2026() {
-      if (!confirm('¿Cargar todo 2026 desde el sheet a Supabase?\n\nOrlando real Ene-May 2026.\nFinancials sintéticos (no estaban en el sheet).\nSobreescribe los días que ya estén en la DB.')) return;
+      if (!(await arConfirm('¿Cargar todo 2026 desde el sheet a Supabase?\n\nOrlando real Ene-May 2026.\nFinancials sintéticos (no estaban en el sheet).\nSobreescribe los días que ya estén en la DB.', { title: 'Cargar 2026', ok: 'Cargar' }))) return;
       const reports = FULL_2026_ORLANDO
         .filter(([_, visits, __, ___, sales]) => visits !== 0 || sales !== 0)
         .map(([date, visits, applied, approved, sales]) => ({
@@ -6412,7 +6426,7 @@
     }
 
     async function seedDemoData() {
-      if (!confirm('¿Cargar 3 semanas de demo a Supabase?\nSobreescribe esos días.')) return;
+      if (!(await arConfirm('¿Cargar 3 semanas de demo a Supabase?\nSobreescribe esos días.', { title: 'Cargar demo', ok: 'Cargar' }))) return;
       const today = new Date();
       const reports = [];
       for (let daysAgo = 0; daysAgo < 21; daysAgo++) {
@@ -6433,7 +6447,7 @@
     }
 
     async function clearAllData() {
-      if (!confirm('¿Borrar TODOS los reportes de Supabase? No se puede deshacer.')) return;
+      if (!(await arConfirm('¿Borrar TODOS los reportes de Supabase? No se puede deshacer.', { title: 'Borrar todo', ok: 'Borrar todo', danger: true }))) return;
       try {
         const res = await fetch(`${SUPA_URL}/rest/v1/ar_daily_reports?id=neq.00000000-0000-0000-0000-000000000000`, {
           method: 'DELETE', headers: SUPA_HEADERS
@@ -6763,7 +6777,6 @@
       close();
       if (sel.selectedIndex === i) return;
       IDX.set.call(sel, i); sync(sel);
-      sel.dispatchEvent(new Event('input', { bubbles: true }));
       sel.dispatchEvent(new Event('change', { bubbles: true }));
     }
     function highlight(i) {
@@ -6794,6 +6807,7 @@
         var it = document.createElement('div');
         it.className = 'ard-opt' + (i === sel.selectedIndex ? ' sel' : '') + (o.disabled ? ' dis' : '') + (o.value ? '' : ' ard-empty');
         it.setAttribute('role', 'option'); it.dataset.i = i; it.textContent = o.textContent;
+        var ost = o.getAttribute('style'); if (ost && i !== sel.selectedIndex) it.style.cssText = ost;
         it.addEventListener('click', function (ev) { ev.stopPropagation(); if (!o.disabled) choose(sel, i); });
         list.appendChild(it);
       });
@@ -6861,6 +6875,49 @@
       if (cur && !document.body.contains(cur.sel)) close();
     }).observe(document.body, { childList: true, subtree: true });
     scan(document.body);
+  })();
+  </script>
+  <script>
+  /* Avisos y confirmaciones propias (en lugar de las ventanitas del navegador).
+     arConfirm → true/false · arPrompt → texto o null · alert() → aviso con el estilo de la app. */
+  (function () {
+    var chain = Promise.resolve();
+    function esc(t) { return String(t == null ? '' : t).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+    function show(kind, msg, o) {
+      o = o || {};
+      return new Promise(function (resolve) {
+        var ov = document.createElement('div');
+        ov.className = 'pwd-overlay ar-dlg'; ov.style.display = 'flex';
+        var title = o.title || (kind === 'alert' ? 'Aviso' : kind === 'prompt' ? 'Escribe' : 'Confirmar');
+        ov.innerHTML = '<div class="pwd-modal" role="' + (kind === 'alert' ? 'alertdialog' : 'dialog') + '" aria-modal="true">' +
+          '<div class="pwd-head"><div><h3>' + esc(title) + '</h3></div>' +
+          '<button type="button" class="pwd-close" data-x aria-label="Cerrar">&times;</button></div>' +
+          '<form class="ar-dlg-form">' +
+            (msg ? '<p class="ar-dlg-msg">' + esc(msg) + '</p>' : '') +
+            (kind === 'prompt' ? '<div class="edit-field"><input type="text" class="ar-dlg-input" autocomplete="off" placeholder="' + esc(o.placeholder || '') + '" value="' + esc(o.value || '') + '"></div>' : '') +
+            '<div class="pwd-actions">' +
+              (kind === 'alert' ? '' : '<button type="button" class="btn-cancel" data-x>' + esc(o.cancel || 'Cancelar') + '</button>') +
+              '<button type="submit" class="' + (o.danger ? 'btn-danger' : 'btn-save') + '">' + esc(o.ok || (kind === 'alert' ? 'Entendido' : 'Aceptar')) + '</button>' +
+            '</div></form></div>';
+        var input = ov.querySelector('.ar-dlg-input');
+        function done(ok) {
+          document.removeEventListener('keydown', onKey, true);
+          if (ov.parentNode) ov.parentNode.removeChild(ov);
+          resolve(kind === 'prompt' ? (ok ? input.value : null) : kind === 'alert' ? undefined : !!ok);
+        }
+        function onKey(e) { if (e.key === 'Escape') { e.stopImmediatePropagation(); e.preventDefault(); done(false); } }
+        ov.addEventListener('click', function (e) { if (e.target === ov || (e.target.closest && e.target.closest('[data-x]'))) done(false); });
+        ov.querySelector('form').addEventListener('submit', function (e) { e.preventDefault(); done(true); });
+        document.addEventListener('keydown', onKey, true);
+        document.body.appendChild(ov);
+        setTimeout(function () { try { (input || ov.querySelector('button[type=submit]')).focus(); } catch (e) {} }, 30);
+      });
+    }
+    function queue(kind, msg, o) { var p = chain.then(function () { return show(kind, msg, o); }); chain = p.then(function () {}, function () {}); return p; }
+    window.arConfirm = function (msg, o) { return queue('confirm', msg, o); };
+    window.arPrompt = function (msg, o) { return queue('prompt', msg, o); };
+    window.arAlert = function (msg, o) { return queue('alert', msg, o); };
+    window.alert = function (msg) { queue('alert', msg); };
   })();
   </script>
 </body>
