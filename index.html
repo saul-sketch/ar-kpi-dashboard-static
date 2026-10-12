@@ -1543,6 +1543,206 @@
     .btn-google:active { background: #f1f5f9; }
     .btn-google:disabled { opacity: 0.6; cursor: default; }
     .btn-google svg { width: 18px; height: 18px; flex: 0 0 auto; }
+
+    /* ===== Mobile (iPhone) — solo afecta pantallas ≤767px o celular acostado; el escritorio queda igual ===== */
+    @media (max-width: 767px), (hover: none) and (pointer: coarse) and (max-height: 500px) {
+      body { padding: 10px; }
+      .app-shell { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+      .app-shell > main { min-width: 0; }
+      .hide-scrollbar, .month-year-group, .view-tabs, .filter-tabs, .range-chips, .drawer-filters { scrollbar-width: none; -ms-overflow-style: none; }
+      .month-year-group::-webkit-scrollbar, .view-tabs::-webkit-scrollbar, .filter-tabs::-webkit-scrollbar, .range-chips::-webkit-scrollbar, .drawer-filters::-webkit-scrollbar { display: none; }
+
+      /* Header: se apila */
+      .header { flex-direction: column; align-items: stretch; gap: 12px; padding: 16px; border-radius: 14px; margin-bottom: 12px; }
+      .header h1 { font-size: 17px; line-height: 1.25; }
+      .header .subtitle { font-size: 12px; }
+      .header > div:last-child { justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+      .user-pill { padding: 0 6px 0 14px; font-size: 14px; gap: 2px; }
+      .user-pill button { width: 40px; height: 40px; justify-content: center; }
+      .user-pill button svg { width: 17px; height: 17px; }
+
+      /* Periodo: filas de chips que se deslizan de lado */
+      .sidebar { position: relative; top: 0; max-height: none; padding: 12px 0; border-radius: 12px; }
+      .sidebar-title { font-size: 12px; padding: 0 14px 8px; }
+      .month-all { margin: 0 10px 8px; min-height: 42px; padding: 9px 14px; font-size: 14px; }
+      .month-list { display: block; padding: 0 10px; }
+      .month-year-group { display: flex; flex-wrap: nowrap; gap: 6px; overflow-x: auto; -webkit-overflow-scrolling: touch; width: auto; margin-bottom: 6px; padding-bottom: 2px; }
+      .month-year-group .month-item { flex: 0 0 auto; padding: 9px 12px !important; min-height: 40px; font-size: 13px !important; border: 1px solid var(--gray-200); white-space: nowrap; }
+      .month-year-group .month-item.active { border-color: var(--primary); }
+      .month-count { font-size: 12px; }
+      .add-day-btn { margin: 8px 10px 0; width: calc(100% - 20px); min-height: 44px; }
+
+      /* Pestañas de vista */
+      .view-tabs { display: flex; width: 100%; overflow-x: auto; margin-bottom: 12px; }
+      .view-tab { flex: 1 0 auto; justify-content: center; padding: 11px 14px; min-height: 44px; white-space: nowrap; }
+
+      /* Filtros */
+      .filters { padding: 12px; gap: 10px; margin-bottom: 12px; flex-direction: column; align-items: stretch; }
+      .filter-group { flex-direction: column; align-items: stretch; gap: 6px; min-width: 0; width: 100%; max-width: 100%; }
+      .filter-label { font-size: 12px; }
+      .filter-tabs { display: flex; overflow-x: auto; max-width: 100%; min-width: 0; }
+      .filter-tab { flex: 1 0 auto; min-height: 40px; white-space: nowrap; padding: 8px 12px; }
+      .filters > div[style*="margin-left"] { margin-left: 0 !important; }
+      .filters > div[style*="margin-left"] .filter-tab { width: 100%; }
+
+      /* Rango de fechas */
+      .date-range-bar { display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; padding: 10px 12px; margin-bottom: 12px; }
+      .date-range-bar .filter-label { grid-column: 1 / -1; }
+      .range-input { min-width: 0; width: 100%; font-size: 16px; min-height: 42px; padding: 8px 10px; }
+      .range-chips, .range-clear, .range-active-label { grid-column: 1 / -1; }
+      .range-chips { display: flex; overflow-x: auto; gap: 6px; }
+      .range-chip { flex: 1 0 auto; min-height: 40px; font-size: 13px; white-space: nowrap; }
+      .range-clear { min-height: 40px; font-size: 13px; }
+      .range-active-label { margin-left: 0; justify-self: start; font-size: 12px; }
+
+      /* Tarjetas KPI y secciones */
+      .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 12px; }
+      .kpi-card { padding: 14px; min-width: 0; }
+      .kpi-value { font-size: 24px; }
+      .kpi-value.money { font-size: 20px; overflow-wrap: anywhere; }
+      .kpi-label { font-size: 12px; }
+      .kpi-trend { font-size: 12px; flex-wrap: wrap; }
+      .section-card { padding: 16px; }
+      .mix-section { padding: 14px; }
+      .mix-tile { min-height: 48px; }
+      .mix-block-title, .avg-label, .rate-label, .proj-label, .week-title { font-size: 12px; }
+      .mix-tile-detail, .avg-detail, .rate-detail, .rate-target, .proj-detail, .week-range, .week-vts { font-size: 12px; }
+      .mix-tile-detail { white-space: normal; }
+      .avg-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 12px; }
+      .avg-card { min-width: 0; }
+      .row-2col { gap: 12px; margin-bottom: 12px; }
+      .rates-grid { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+      .projection-card { padding: 16px; gap: 14px; }
+      .week-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+      .status-pill, .outcome-pill { font-size: 11px; }
+      th { font-size: 12px; }
+      .td-loc { font-size: 12px; }
+
+      /* Desglose diario: cada día es una tarjeta (la tabla sigue igual en escritorio) */
+      .daily-table, .daily-table tbody { display: block; }
+      .daily-table thead { display: none; }
+      .daily-table tr[data-date] { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px 6px; padding: 10px 12px; margin-bottom: 8px; background: white; border: 1px solid var(--gray-200); border-radius: 12px; }
+      .daily-table tr[data-date]:active { border-color: var(--primary); }
+      .daily-table tr[data-date] td { display: flex; flex-direction: column; gap: 2px; padding: 0; border: none; background: transparent !important; text-align: left; min-width: 0; overflow-wrap: anywhere; }
+      .daily-table tr[data-date] td::before { content: attr(data-label); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--gray-500); }
+      .daily-table tr[data-date] td:nth-child(1) { grid-column: span 3; }
+      .daily-table tr[data-date] td:nth-child(2) { grid-column: span 2; }
+      .daily-table tr[data-date] td:nth-child(1), .daily-table tr[data-date] td:nth-child(2) { font-weight: 700; font-size: 14px; }
+      .daily-table tr[data-date] td:nth-child(12) { grid-column: span 4; }
+      .daily-table tr[data-date] td:nth-child(1)::before, .daily-table tr[data-date] td:nth-child(2)::before { display: none; }
+      .daily-table tr[data-date] td:nth-child(2) { align-items: flex-end; }
+      .daily-table tr[data-date] td.td-money { grid-column: span 2; }
+      .daily-table tr:not([data-date]) { display: block; }
+      .daily-table tr:not([data-date]) td { display: block; }
+      .performer { min-height: 48px; }
+      .reason-row .reason-lbl { width: 40% !important; font-size: 13px !important; }
+      .reason-row .reason-pct { width: auto !important; min-width: 58px; white-space: nowrap; }
+      .reason-click { min-height: 40px; margin-bottom: 2px !important; }
+      .rate-status { font-size: 11px; }
+
+      /* Gráficos */
+      .charts-grid { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+      .chart-card { padding: 12px; min-width: 0; }
+
+      /* Drawer: ocupa toda la pantalla, se desliza por dentro */
+      .drawer { max-width: 100%; height: 100%; height: 100dvh; }
+      .drawer-header { padding: 14px 14px 12px; }
+      .drawer-header h2 { font-size: 17px; }
+      .drawer-close { width: 40px; height: 40px; font-size: 22px; }
+      #drawer-add-host { padding: 8px 14px !important; }
+      .drawer-filters { padding: 10px 14px; flex-wrap: nowrap; overflow-x: auto; }
+      .drawer-chip { flex: 0 0 auto; min-height: 40px; padding: 8px 14px; font-size: 13px; white-space: nowrap; }
+      .drawer-body { padding: 12px 14px; }
+      .btn-add-visit { min-height: 44px; font-size: 14px; }
+      #drawer-add-host .btn-add-visit[style*="margin-left"] { margin-left: 0 !important; margin-top: 8px; }
+      .visit-mini { padding: 12px; }
+      .visit-mini-header { flex-wrap: wrap; }
+      .visit-mini-right { min-width: 0; }
+      .visit-mini-loc { font-size: 12px; }
+      .visit-mini-name span[style*="font-size:9px"] { font-size: 11px !important; display: inline-block; margin-top: 2px; }
+      .visit-mini-detail div[style*="font-size:11px"] { font-size: 12px !important; }
+      .detail-grid, .detail-grid.full { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 14px; }
+      .detail-row { font-size: 13px; overflow-wrap: anywhere; }
+      .detail-row .lbl { font-size: 11px; }
+      .visit-actions { flex-wrap: wrap; }
+      .visit-action-btn { min-height: 40px; padding: 8px 14px; font-size: 13px; flex: 1 1 auto; }
+
+      /* Modales */
+      .edit-overlay { padding: 0; align-items: flex-end; }
+      .edit-modal { max-height: 92vh; max-height: 92dvh; border-radius: 16px 16px 0 0; }
+      .edit-modal-header { padding: 14px 16px; gap: 10px; }
+      .edit-modal-header > button { width: 40px !important; height: 40px !important; flex-shrink: 0; font-size: 22px !important; }
+      .edit-modal-header .meta { font-size: 12px; }
+      .edit-modal-body { padding: 14px 16px; }
+      .edit-draft-banner { margin: 0 16px 10px; }
+      .edit-draft-banner a { padding: 10px 4px; }
+      .edit-section-title { font-size: 12px; }
+      .edit-grid-2 { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+      .edit-field label { font-size: 12px; }
+      .edit-field input, .edit-field select, .edit-field textarea { font-size: 16px; min-height: 44px; }
+      .edit-toggle-row { flex-direction: column; align-items: stretch; gap: 6px; }
+      .edit-toggle-row .lbl { width: auto; }
+      .edit-toggle-group { display: flex; }
+      .edit-toggle-btn { flex: 1 1 0; min-height: 42px; font-size: 12px; padding: 8px 6px; }
+      .edit-modal-footer { padding: 12px 16px; padding-bottom: calc(12px + env(safe-area-inset-bottom)); flex-wrap: wrap; gap: 8px; }
+      .edit-modal-footer > div { margin-left: 0 !important; flex: 1 1 100%; }
+      .edit-modal-footer > div > button { flex: 1 1 0; }
+      .btn-delete, .btn-save, .btn-cancel { min-height: 44px; font-size: 14px; }
+      .btn-delete { flex: 1 1 100%; order: 2; }
+
+      .rd-overlay { padding: 0; align-items: flex-end; }
+      .rd-modal { max-width: 100%; max-height: 88vh; max-height: 88dvh; border-radius: 16px 16px 0 0; padding: 16px; padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
+      .rd-close { width: 40px; height: 40px; font-size: 18px; }
+      .rd-row { grid-template-columns: minmax(0, 1fr) 64px 70px; min-height: 44px; }
+      .rd-row:has(> div:nth-child(2):empty) { grid-template-columns: minmax(0, 1fr) 0 auto; }
+      .rd-modal .rd-row div[style*="font-size:11px"] { font-size: 12px !important; }
+      .rd-modal .badge { display: inline-block; padding: 3px 9px; border-radius: 100px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+      .rd-nums span[style*="font-size:10px"] { font-size: 11px !important; }
+      .rd-row.rd-head { font-size: 11px; min-height: 0; }
+      .rd-funnel-lab { font-size: 12px; }
+      .rd-funnel-sub { font-size: 11px; }
+
+      #add-day-overlay, #reassign-overlay, #dash-manage-agents-overlay { padding: 12px; }
+      #add-day-overlay .filter-tab, #reassign-overlay .filter-tab, #dash-manage-agents-overlay > div > div:last-child .filter-tab { min-height: 44px; flex: 1 1 0; }
+      #dash-manage-agents-body .filter-tab { flex: 0 0 auto; min-height: 40px; font-size: 13px !important; }
+      #dash-manage-agents-body > div { gap: 10px; }
+      #dash-manage-agents-overlay > div { padding: 18px !important; }
+
+
+      /* Settings — Usuarios: cada usuario es una tarjeta */
+      #sa-overlay { padding: 10px 8px !important; }
+      .sa-panel { padding: 14px !important; }
+      .sa-head { flex-wrap: wrap; gap: 10px; }
+      .sa-head button { min-height: 44px; min-width: 44px; }
+      .sa-head > div:last-child { flex: 1 1 100%; }
+      .sa-head > div:last-child > button:first-child { flex: 1 1 auto; }
+      #sa-add-box input { font-size: 16px !important; min-height: 44px; flex: 1 1 100% !important; }
+      #sa-add-box button { min-height: 44px; flex: 1 1 100%; }
+      .sa-table thead { display: none; }
+      .sa-table, .sa-table tbody { display: block; }
+      .sa-table tr.sa-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; padding: 12px 4px; position: relative; }
+      .sa-table tr.sa-row td { padding: 0 !important; border: none; text-align: left !important; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+      .sa-table tr.sa-row td:first-child { grid-column: 1 / -1; padding-right: 48px !important; font-size: 15px; }
+      .sa-table tr.sa-row td[data-label]::before { content: attr(data-label); font-size: 11px; font-weight: 700; text-transform: uppercase; color: #64748b; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+      .sa-table tr.sa-row td[data-label] > span { align-self: flex-start; }
+      .sa-table tr.sa-row select { font-size: 16px !important; min-height: 40px; padding: 6px 8px !important; }
+      .sa-table tr.sa-row input[type=checkbox] { width: 24px; height: 24px; margin: 8px 0; }
+      .sa-table tr.sa-row td.sa-del { position: absolute; top: 6px; right: 0; }
+      .sa-table tr.sa-row td.sa-del button { width: 44px; height: 44px; font-size: 18px !important; }
+      /* Login */
+      .login-screen { margin: -10px; min-height: 100vh; min-height: 100dvh; padding: 16px; }
+      .login-card { padding: 32px 22px 26px; }
+      .login-card input[type="password"] { font-size: 16px; }
+      .btn-login { min-height: 48px; }
+      .login-subtitle { font-size: 14px; }
+    }
+    /* Celular acostado: el pie del modal en una sola fila para dejar espacio al formulario */
+    @media (hover: none) and (pointer: coarse) and (max-height: 500px) {
+      .edit-modal-footer { flex-wrap: nowrap; }
+      .edit-modal-footer > div { flex: 1 1 auto; }
+      .btn-delete { flex: 0 0 auto; order: 0; }
+      .edit-modal { max-height: 96vh; max-height: 96dvh; }
+    }
 </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.49.1/dist/apexcharts.min.js"></script>
@@ -1640,7 +1840,7 @@
       </div>
 
       <!-- Reassign report date (admin only) -->
-      <div id="reassign-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:60; align-items:center; justify-content:center;" onclick="closeReassignModal(event)">
+      <div id="reassign-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:150; align-items:center; justify-content:center;" onclick="closeReassignModal(event)">
         <div style="background:white; padding:24px; border-radius:14px; width:400px; max-width:90vw;" onclick="event.stopPropagation()">
           <h3 style="margin:0 0 4px 0; font-size:18px;">Reasignar fecha del reporte</h3>
           <p style="margin:0 0 14px 0; font-size:13px; color:var(--gray-500);">Mueve este reporte y TODAS sus visitas a otra fecha. Útil cuando se cargó en el día equivocado. No se pierde ningún dato.</p>
@@ -2046,7 +2246,7 @@
       <h3>Desglose Diario</h3>
       <p class="section-sub">Cada día del periodo seleccionado</p>
       <div class="table-wrap">
-        <table>
+        <table class="daily-table">
           <thead>
             <tr>
               <th>Fecha</th>
@@ -2269,7 +2469,7 @@
   </div>
 
   <!-- Manage Agents Modal (dashboard) -->
-  <div id="dash-manage-agents-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:200; align-items:center; justify-content:center;" onclick="if(event.target.id==='dash-manage-agents-overlay') closeDashManageModal()">
+  <div id="dash-manage-agents-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:250; align-items:center; justify-content:center;" onclick="if(event.target.id==='dash-manage-agents-overlay') closeDashManageModal()">
     <div style="background:white; padding:24px; border-radius:14px; width:420px; max-width:90vw; max-height:80vh; overflow:auto;">
       <h3 id="dash-manage-agents-title" style="margin:0 0 4px 0; font-size:17px;">Eliminar agentes</h3>
       <p style="margin:0 0 16px 0; font-size:12px; color:var(--gray-500);">Click "× Eliminar" para sacar al agente del dropdown.</p>
@@ -2472,25 +2672,25 @@
       try { const r = await fetch(`${SUPA_URL}/rest/v1/dashboard_access?dashboard=eq.${DASH}&select=*&order=last_seen_at.desc.nullslast`, { headers: SUPA_HEADERS }); rows = await r.json(); } catch (e) {}
       const roleOpt = (cur) => ['admin', 'manager', 'viewer'].map(r => `<option value="${r}" ${cur === r ? 'selected' : ''}>${r}</option>`).join('');
       const esc = s => (s == null ? '' : String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])));
-      const body = rows.map(u => `<tr style="border-top:1px solid #e2e8f0;${u.active === false ? 'opacity:.5;' : ''}">
+      const body = rows.map(u => `<tr class="sa-row" style="border-top:1px solid #e2e8f0;${u.active === false ? 'opacity:.5;' : ''}">
           <td style="padding:8px 6px;font-weight:700;">${esc(u.name || '—')}<div style="font-size:11px;color:#94a3b8;font-weight:400;">${esc(u.email || '')}</div></td>
-          <td style="padding:8px 6px;">${saBadge(u.access_type)}</td>
-          <td style="padding:8px 6px;font-family:monospace;font-size:12px;">${u.access_type === 'user' ? esc(u.password || '') : '<span style="color:#cbd5e1;">—</span>'}</td>
-          <td style="padding:8px 6px;"><select onchange="saPatch('${u.id}',{role:this.value})" style="font-size:12px;padding:4px 6px;border:1px solid #e2e8f0;border-radius:6px;font-family:inherit;">${roleOpt(u.role)}</select></td>
-          <td style="padding:8px 6px;font-size:12px;">${saFmtLastSeen(u.last_seen_at)}</td>
-          <td style="padding:8px 6px;text-align:center;"><input type="checkbox" ${u.can_history !== false ? 'checked' : ''} onchange="saPatch('${u.id}',{can_history:this.checked})" title="Ver meses pasados"></td>
-          <td style="padding:8px 6px;text-align:center;"><input type="checkbox" ${u.active !== false ? 'checked' : ''} onchange="saPatch('${u.id}',{active:this.checked})" title="Acceso activo"></td>
-          <td style="padding:8px 6px;text-align:center;"><button onclick="saDelete('${u.id}','${esc(u.name || '')}')" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:14px;">🗑</button></td>
+          <td data-label="Acceso" style="padding:8px 6px;">${saBadge(u.access_type)}</td>
+          <td data-label="Clave" style="padding:8px 6px;font-family:monospace;font-size:12px;">${u.access_type === 'user' ? esc(u.password || '') : '<span style="color:#cbd5e1;">—</span>'}</td>
+          <td data-label="Rol" style="padding:8px 6px;"><select onchange="saPatch('${u.id}',{role:this.value})" style="font-size:12px;padding:4px 6px;border:1px solid #e2e8f0;border-radius:6px;font-family:inherit;">${roleOpt(u.role)}</select></td>
+          <td data-label="Última vez" style="padding:8px 6px;font-size:12px;">${saFmtLastSeen(u.last_seen_at)}</td>
+          <td data-label="Históricos" style="padding:8px 6px;text-align:center;"><input type="checkbox" ${u.can_history !== false ? 'checked' : ''} onchange="saPatch('${u.id}',{can_history:this.checked})" title="Ver meses pasados"></td>
+          <td data-label="Activo" style="padding:8px 6px;text-align:center;"><input type="checkbox" ${u.active !== false ? 'checked' : ''} onchange="saPatch('${u.id}',{active:this.checked})" title="Acceso activo"></td>
+          <td class="sa-del" style="padding:8px 6px;text-align:center;"><button onclick="saDelete('${u.id}','${esc(u.name || '')}')" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:14px;">🗑</button></td>
         </tr>`).join('');
       const o = document.getElementById('sa-overlay'); if (o) o.remove();
       document.body.insertAdjacentHTML('beforeend', `<div id="sa-overlay" style="position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:3000;display:flex;align-items:flex-start;justify-content:center;padding:24px 12px;overflow-y:auto;" onclick="if(event.target===this)this.remove()">
-        <div style="background:white;border-radius:16px;padding:20px;max-width:780px;width:100%;margin:auto;box-shadow:0 24px 60px rgba(0,0,0,.28);">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;"><div style="font-weight:800;font-size:17px;">⚙️ Settings — Usuarios</div>
+        <div class="sa-panel" style="background:white;border-radius:16px;padding:20px;max-width:780px;width:100%;margin:auto;box-shadow:0 24px 60px rgba(0,0,0,.28);">
+          <div class="sa-head" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;"><div style="font-weight:800;font-size:17px;">⚙️ Settings — Usuarios</div>
           <div style="display:flex;gap:8px;"><button onclick="saAddUserPrompt()" style="padding:8px 14px;background:#0f172a;color:white;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-family:inherit;font-size:13px;">+ Agregar usuario</button>
           <button onclick="document.getElementById('sa-overlay').remove()" style="background:#f1f5f9;border:none;border-radius:8px;width:34px;cursor:pointer;font-size:15px;">✕</button></div></div>
           <div style="font-size:12.5px;color:#1e40af;background:#eff6ff;border:1px solid #bfdbfe;border-radius:9px;padding:9px 12px;margin:10px 0;"><b>Acceso:</b> Desde el CRM = GoHighLevel · Link directo = enlace · Usuario + clave = contraseña. <b>Históricos</b> ON = ve meses pasados; OFF = solo mes actual.</div>
           <div id="sa-add-box"></div>
-          <div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr style="text-align:left;color:#64748b;font-size:11px;text-transform:uppercase;">
+          <div style="overflow-x:auto;"><table class="sa-table" style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr style="text-align:left;color:#64748b;font-size:11px;text-transform:uppercase;">
             <th style="padding:6px;">Usuario</th><th style="padding:6px;">Acceso</th><th style="padding:6px;">Clave</th><th style="padding:6px;">Rol</th><th style="padding:6px;">Última vez</th><th style="padding:6px;text-align:center;">Históricos</th><th style="padding:6px;text-align:center;">Activo</th><th></th>
           </tr></thead><tbody>${body || '<tr><td colspan="8" style="padding:20px;text-align:center;color:#94a3b8;">Sin usuarios</td></tr>'}</tbody></table></div>
         </div></div>`);
@@ -2684,6 +2884,14 @@
           </div>
         `;
       }).join('');
+      // Celular: cada año es una fila que se desliza de lado — deja a la vista el periodo elegido
+      try {
+        list.querySelectorAll('.month-year-group').forEach(g => {
+          const a = g.querySelector('.month-item.active');
+          if (!a || g.scrollWidth <= g.clientWidth) return;
+          g.scrollLeft = Math.max(0, a.getBoundingClientRect().left - g.getBoundingClientRect().left + g.scrollLeft - 8);
+        });
+      } catch (e) {}
     }
 
     function inSelectedMonth(dateISO) {
@@ -2859,10 +3067,10 @@
         const pct = Math.round(count / max * 100);
         const share = Math.round(count / total * 100);
         const clickAttr = kind ? `onclick="openReasonDrilldown('${kind}', ${JSON.stringify(label).replace(/"/g, '&quot;')})" style="display:flex; align-items:center; gap:10px; margin-bottom:7px; cursor:pointer;" title="Ver por closer"` : `style="display:flex; align-items:center; gap:10px; margin-bottom:7px;"`;
-        return `<div ${clickAttr}>
-          <span style="font-size:12px; color:var(--gray-600); width:150px; flex:0 0 auto; line-height:1.25;">${escapeHtml(label)}</span>
+        return `<div class="reason-row${kind ? ' reason-click' : ''}" ${clickAttr}>
+          <span class="reason-lbl" style="font-size:12px; color:var(--gray-600); width:150px; flex:0 0 auto; line-height:1.25;">${escapeHtml(label)}</span>
           <span style="flex:1; height:16px; background:var(--gray-100); border-radius:4px; overflow:hidden; display:block;"><span style="display:block; height:100%; width:${pct}%; background:${color}; border-radius:4px;"></span></span>
-          <span style="font-size:12px; font-weight:700; width:58px; text-align:right; color:var(--gray-700);">${count} · ${share}%</span>
+          <span class="reason-pct" style="font-size:12px; font-weight:700; width:58px; text-align:right; color:var(--gray-700);">${count} · ${share}%</span>
         </div>`;
       }).join('');
     }
@@ -3282,18 +3490,18 @@
             : `<span style="color:#d97706;font-weight:700;" title="Falta confirmar aplicaciones online de este día">⚠ falta</span>`;
           return `
             <tr data-date="${r.date}" data-location="${r.location || ''}">
-              <td>${formatDateShort(r.date)}</td>
-              <td><span class="td-loc"><span class="dot ${loc}"></span>${r.location || '—'}</span></td>
-              <td class="td-numeric">${v}</td>
-              <td class="td-numeric ${ap === 0 ? 'td-zero' : ''}">${ap}</td>
-              <td class="td-numeric ${apr === 0 ? 'td-zero' : ''}">${apr}</td>
-              <td class="td-numeric ${dn === 0 ? 'td-zero' : ''}">${dn}</td>
-              <td class="td-numeric ${sl === 0 ? 'td-zero' : ''}">${sl}</td>
-              <td class="td-numeric">${appCell}</td>
-              <td class="td-money ${np === 0 ? 'td-zero' : ''}">${fmtMoney(np)}</td>
-              <td class="td-money ${dc === 0 ? 'td-zero' : ''}">${fmtMoney(dc)}</td>
-              <td class="td-numeric">${fmtPct(sl, v)}</td>
-              <td style="font-size:12px; color: var(--gray-500);">${r.submitted_by || '—'}</td>
+              <td data-label="Fecha">${formatDateShort(r.date)}</td>
+              <td data-label="Loc"><span class="td-loc"><span class="dot ${loc}"></span>${r.location || '—'}</span></td>
+              <td data-label="Visitas" class="td-numeric">${v}</td>
+              <td data-label="Aplic." class="td-numeric ${ap === 0 ? 'td-zero' : ''}">${ap}</td>
+              <td data-label="Aprob" class="td-numeric ${apr === 0 ? 'td-zero' : ''}">${apr}</td>
+              <td data-label="Negados" class="td-numeric ${dn === 0 ? 'td-zero' : ''}">${dn}</td>
+              <td data-label="Ventas" class="td-numeric ${sl === 0 ? 'td-zero' : ''}">${sl}</td>
+              <td data-label="Apps" class="td-numeric">${appCell}</td>
+              <td data-label="Net Profit" class="td-money ${np === 0 ? 'td-zero' : ''}">${fmtMoney(np)}</td>
+              <td data-label="Down col." class="td-money ${dc === 0 ? 'td-zero' : ''}">${fmtMoney(dc)}</td>
+              <td data-label="V→S" class="td-numeric">${fmtPct(sl, v)}</td>
+              <td data-label="Por" style="font-size:12px; color: var(--gray-500);">${r.submitted_by || '—'}</td>
             </tr>
           `;
         }).join('');
@@ -5040,6 +5248,15 @@
         delete _chartRegistry[elId];
       }
       el.innerHTML = '';
+      // Celular: etiquetas del eje X inclinadas cuando hay muchas, para que no se encimen ni se pierdan
+      try {
+        const cats = options.xaxis && options.xaxis.categories;
+        const horiz = options.plotOptions && options.plotOptions.bar && options.plotOptions.bar.horizontal;
+        if (window.matchMedia && window.matchMedia('(max-width: 767px), (hover: none) and (pointer: coarse) and (max-height: 500px)').matches && Array.isArray(cats) && cats.length > 8 && !horiz) {
+          options.xaxis.labels = Object.assign({ rotate: -45, rotateAlways: true, hideOverlappingLabels: true }, options.xaxis.labels || {});
+          options.xaxis.labels.style = Object.assign({ fontSize: '10px' }, options.xaxis.labels.style || {});
+        }
+      } catch (e) {}
       const c = new ApexCharts(el, options);
       _chartRegistry[elId] = c;
       c.render();
